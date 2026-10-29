@@ -1,0 +1,37 @@
+[build]
+  publish = "dist"
+  command = "npm run build"
+
+# Định nghĩa chuẩn MIME Type cho toàn bộ file tĩnh (JS, CSS, SVG)
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+
+[[headers]]
+  for = "/*.js"
+  [headers.values]
+    Content-Type = "application/javascript; charset=utf-8"
+
+[[headers]]
+  for = "/assets/*.js"
+  [headers.values]
+    Content-Type = "application/javascript; charset=utf-8"
+
+[[headers]]
+  for = "/*.css"
+  [headers.values]
+    Content-Type = "text/css; charset=utf-8"
+
+[[headers]]
+  for = "/assets/*.css"
+  [headers.values]
+    Content-Type = "text/css; charset=utf-8"
+
+# SPA Fallback: chuyển hướng tất cả các route về index.html nhưng bỏ qua assets
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
