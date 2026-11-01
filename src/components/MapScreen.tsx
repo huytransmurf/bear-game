@@ -632,7 +632,7 @@ export default function MapScreen() {
               })}
               {/* Welcome Signboard */}
               <rect x="-26" y="-28" width="52" height="14" fill="#fde047" stroke="#b45309" strokeWidth="2" rx="3" />
-              <text x="0" y="-18" fontSize="8" fontWeight="900" fill="#78350f" textAnchor="middle" fontFamily="Fredoka, sans-serif">
+              <text x="0" y="-18" fontSize="8" fontWeight="900" fill="#78350f" textAnchor="middle" fontFamily="'Baloo 2', 'Be Vietnam Pro', sans-serif">
                 VIỆT NAM SANCTUARY
               </text>
             </g>
@@ -717,7 +717,7 @@ export default function MapScreen() {
                 ) : (
                   <text
                     y="7"
-                    fontFamily="Fredoka, sans-serif"
+                    fontFamily="'Baloo 2', 'Be Vietnam Pro', sans-serif"
                     fontWeight="900"
                     fontSize="17"
                     textAnchor="middle"
@@ -741,7 +741,7 @@ export default function MapScreen() {
                   />
                   <text
                     y="4"
-                    fontFamily="Fredoka, sans-serif"
+                    fontFamily="'Baloo 2', 'Be Vietnam Pro', sans-serif"
                     fontWeight="800"
                     fontSize="8.5"
                     textAnchor="middle"
