@@ -203,15 +203,18 @@ export async function fetchLeaderboard(limit = 100, includeDeleted = false): Pro
       return { entries: local, isCloud: false };
     }
 
-    const formatted: LeaderboardEntry[] = data.map((row) => ({
-      sessionId: row.session_id,
-      playerName: row.player_name,
-      bearType: row.bear_type as 'sunbear' | 'blackbear',
-      score: row.score,
-      completedLevelsCount: row.completed_levels_count,
-      updatedAt: row.updated_at,
-      isDeleted: Boolean(row.is_deleted),
-    }));
+    const formatted: LeaderboardEntry[] = data
+      .filter((row) => (includeDeleted ? true : !row.is_deleted))
+      .map((row) => ({
+        sessionId: row.session_id,
+        playerName: row.player_name,
+        bearType: row.bear_type as 'sunbear' | 'blackbear',
+        score: row.score,
+        completedLevelsCount: row.completed_levels_count,
+        updatedAt: row.updated_at,
+        isDeleted: Boolean(row.is_deleted),
+      }))
+      .sort((a, b) => new Date(b.updatedAt || 0).getTime() - new Date(a.updatedAt || 0).getTime());
 
     return { entries: formatted, isCloud: true };
   } catch (err) {

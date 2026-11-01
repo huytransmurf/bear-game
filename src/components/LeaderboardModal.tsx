@@ -38,7 +38,7 @@ export default function LeaderboardModal() {
 
   // Find player's rank
   const playerRankIndex = entries.findIndex(
-    (e) => e.sessionId === sessionId || (playerName && e.playerName === playerName)
+    (e) => e.sessionId === sessionId || (Boolean(playerName.trim()) && e.playerName.trim() === playerName.trim())
   );
   const playerRank = playerRankIndex >= 0 ? playerRankIndex + 1 : null;
 
