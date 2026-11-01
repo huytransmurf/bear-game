@@ -21,8 +21,9 @@ export default function ResultScreen() {
     playFanfareSound();
   }, []);
 
-  const totalLevels = levels.length;
-  const maxScore = totalLevels * 120; // 100 base + 20 bonus
+  const totalLevels = levels.length || 13;
+  // Điểm tối đa mỗi level: 100 (cơ bản) + 60 (tốc độ tối đa) + 33 (đúng lần 1) + 23 (không gợi ý) = 216
+  const maxScore = totalLevels * 216;
   const percentage = Math.min(100, Math.round((score / maxScore) * 100));
 
   const getRank = () => {
@@ -64,24 +65,6 @@ export default function ResultScreen() {
 
   const rank = getRank();
   const bearName = bearType === 'sunbear' ? 'Gấu Chó' : 'Gấu Ngựa';
-
-  const shareText = `🐾 Mình vừa hoàn thành game "Hành trình của Gấu" cùng ${bearName} với ${score} điểm! Cùng chung tay bảo tồn gấu Việt Nam nhé! #BaoTonGau #AnimalsAsia`;
-
-  const handleShare = (platform: 'facebook' | 'copy') => {
-    playPopSound();
-    if (platform === 'facebook') {
-      window.open(
-        `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}&quote=${encodeURIComponent(shareText)}`,
-        '_blank'
-      );
-    } else {
-      if (navigator.clipboard) {
-        navigator.clipboard.writeText(shareText).then(() => {
-          alert('Đã sao chép lời chia sẻ vào bộ nhớ tạm! 🎉');
-        });
-      }
-    }
-  };
 
   return (
     <div className="flex flex-col h-full bg-gradient-to-b from-[#fef3c7] via-[#ecfdf5] to-[#d1fae5] overflow-y-auto no-scrollbar select-none">
@@ -190,33 +173,17 @@ export default function ResultScreen() {
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.45 }}
-        className="mx-4 mb-3 p-3.5 rounded-2xl bg-emerald-100 border-2 border-emerald-400 shadow-sm"
+        className="mx-4 mb-3 p-4 rounded-2xl bg-emerald-100 border-2 border-emerald-400 shadow-sm text-center"
       >
-        <div className="flex items-center gap-2 mb-1.5">
-          <span className="text-lg">🌿</span>
+        <div className="flex items-center justify-center gap-2 mb-1.5">
+          <span className="text-xl">🌿</span>
           <span className="font-black text-xs text-emerald-900 uppercase tracking-wider">
-            Chung tay hành động
+            Thông điệp bảo tồn
           </span>
         </div>
-        <p className="text-xs text-emerald-950 font-bold leading-relaxed mb-2">
-          Không sử dụng mật gấu và các sản phẩm từ động vật hoang dã. Báo cáo các trường hợp nuôi nhốt trái phép!
+        <p className="text-xs text-emerald-950 font-bold leading-relaxed">
+          Gấu thuộc về rừng xanh tự nhiên. Hãy cùng nhau nói không với mật gấu và bảo vệ môi trường sống cho loài gấu!
         </p>
-        <div className="grid grid-cols-2 gap-2">
-          <a
-            href="https://animalsasia.org/vn/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="btn-pop py-2 px-2 text-center rounded-xl bg-emerald-600 text-white text-xs font-black border-2 border-emerald-800 shadow-[0_2px_0_#064e3b]"
-          >
-            Animals Asia VN
-          </a>
-          <a
-            href="tel:1800599954"
-            className="btn-pop py-2 px-2 text-center rounded-xl bg-amber-400 text-amber-950 text-xs font-black border-2 border-amber-700 shadow-[0_2px_0_#78350f]"
-          >
-            Hotline: 1800 599 954
-          </a>
-        </div>
       </motion.div>
 
       {/* Action Buttons */}
@@ -250,21 +217,6 @@ export default function ResultScreen() {
           <span>🏆</span>
           <span>Xem Bảng Xếp Hạng Sự Kiện</span>
         </button>
-
-        <div className="grid grid-cols-2 gap-2">
-          <button
-            onClick={() => handleShare('facebook')}
-            className="btn-pop py-2.5 rounded-2xl bg-blue-600 text-white text-xs font-black border-2 border-blue-800 shadow-[0_3px_0_#1e3a8a] flex items-center justify-center gap-1.5"
-          >
-            <span>📘</span> Facebook
-          </button>
-          <button
-            onClick={() => handleShare('copy')}
-            className="btn-pop py-2.5 rounded-2xl bg-white text-amber-950 text-xs font-black border-2 border-amber-300 shadow-[0_3px_0_#d97706] flex items-center justify-center gap-1.5"
-          >
-            <span>📋</span> Sao chép
-          </button>
-        </div>
 
         <button
           onClick={() => {

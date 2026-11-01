@@ -6,8 +6,10 @@ import { BearMascot } from './BearMascot';
 import { playPopSound } from '../lib/sound';
 
 export default function LeaderboardModal() {
-  const { showLeaderboard, closeLeaderboard, sessionId, playerName, bearType, score } =
+  const { showLeaderboard, closeLeaderboard, sessionId, playerName, bearType, score, levels } =
     useGameStore();
+
+  const totalStations = levels.length || 13;
 
   const [loading, setLoading] = useState(false);
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
@@ -16,7 +18,7 @@ export default function LeaderboardModal() {
   const loadData = async () => {
     setLoading(true);
     try {
-      const res = await fetchLeaderboard(50);
+      const res = await fetchLeaderboard(100, false);
       setEntries(res.entries);
       setIsCloud(res.isCloud);
     } catch {
@@ -35,7 +37,9 @@ export default function LeaderboardModal() {
   if (!showLeaderboard) return null;
 
   // Find player's rank
-  const playerRankIndex = entries.findIndex((e) => e.sessionId === sessionId);
+  const playerRankIndex = entries.findIndex(
+    (e) => e.sessionId === sessionId || (playerName && e.playerName === playerName)
+  );
   const playerRank = playerRankIndex >= 0 ? playerRankIndex + 1 : null;
 
   return (
@@ -131,7 +135,8 @@ export default function LeaderboardModal() {
             ) : (
               entries.map((item, idx) => {
                 const rankNumber = idx + 1;
-                const isCurrentPlayer = item.sessionId === sessionId;
+                const isCurrentPlayer =
+                  item.sessionId === sessionId || (Boolean(playerName) && item.playerName === playerName);
 
                 let medal = '';
                 let rankBg = 'bg-white/80 border-amber-200';
@@ -186,7 +191,7 @@ export default function LeaderboardModal() {
                           )}
                         </div>
                         <div className="text-[10px] text-amber-800/70 font-semibold">
-                          Hoàn thành {item.completedLevelsCount}/8 trạm
+                          Hoàn thành {item.completedLevelsCount}/{totalStations} trạm
                         </div>
                       </div>
                     </div>

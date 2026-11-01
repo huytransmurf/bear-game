@@ -13,18 +13,22 @@ export default function WordGrid() {
   const { currentLevelIndex, submitAnswer, attemptsLeft, hintUsed, useHint, levels } = useGameStore();
   const level = levels[currentLevelIndex] || levels[0];
 
+  const answer = level?.answer || '';
+  const distractors = level?.distractors || [];
+  const levelId = level?.id || 1;
+
   const { grid, size, answerCells } = useMemo(
     () =>
       generateGrid(
-        level.answer,
-        level.id * 137,
+        answer,
+        levelId * 137,
         10,
-        level.distractors
+        distractors
       ),
-    [level.answer, level.id, level.distractors]
+    [answer, levelId, distractors]
   );
 
-  const answerWord = level.answer.toUpperCase().replace(/\s/g, '');
+  const answerWord = answer.toUpperCase().replace(/\s/g, '');
 
   const [selecting, setSelecting] = useState(false);
   const [startCell, setStartCell] = useState<SelectedCell | null>(null);

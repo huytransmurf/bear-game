@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useGameStore } from './store/gameStore';
 import StartScreen from './components/StartScreen';
@@ -7,7 +7,7 @@ import QuestionModal from './components/QuestionModal';
 import KnowledgeCard from './components/KnowledgeCard';
 import ResultScreen from './components/ResultScreen';
 import LeaderboardModal from './components/LeaderboardModal';
-import { playPopSound } from './lib/sound';
+import { playPopSound, updateMusicPlayback } from './lib/sound';
 
 const screenVariants = {
   initial: { opacity: 0, scale: 0.96 },
@@ -16,11 +16,39 @@ const screenVariants = {
 };
 
 function App() {
-  const { screen, soundEnabled, toggleSound, loadLevels } = useGameStore();
+  const {
+    screen,
+    soundEnabled,
+    toggleSound,
+    musicVolume,
+    setMusicVolume,
+    loadLevels,
+  } = useGameStore();
+
+  const [showVolumePopup, setShowVolumePopup] = useState(false);
 
   useEffect(() => {
     loadLevels();
   }, [loadLevels]);
+
+  useEffect(() => {
+    updateMusicPlayback();
+  }, [soundEnabled, musicVolume]);
+
+  // Handle first user interaction to unlock browser autoplay policy
+  useEffect(() => {
+    const handleFirstUserGesture = () => {
+      updateMusicPlayback();
+      window.removeEventListener('pointerdown', handleFirstUserGesture);
+      window.removeEventListener('keydown', handleFirstUserGesture);
+    };
+    window.addEventListener('pointerdown', handleFirstUserGesture);
+    window.addEventListener('keydown', handleFirstUserGesture);
+    return () => {
+      window.removeEventListener('pointerdown', handleFirstUserGesture);
+      window.removeEventListener('keydown', handleFirstUserGesture);
+    };
+  }, []);
 
   return (
     <div className="min-h-screen bg-[#111827] flex items-center justify-center p-0 sm:p-4 select-none">
@@ -39,17 +67,66 @@ function App() {
           borderRadius: 'clamp(0px, 3vw, 32px)',
         }}
       >
-        {/* Sound toggle button */}
-        <button
-          onClick={() => {
-            playPopSound();
-            toggleSound();
-          }}
-          className="btn-pop absolute top-3 right-3 z-50 w-9 h-9 rounded-2xl bg-amber-400 border-2 border-amber-800 shadow-[0_2px_0_#78350f] flex items-center justify-center text-sm"
-          title={soundEnabled ? 'Tắt âm thanh' : 'Bật âm thanh'}
-        >
-          {soundEnabled ? '🔊' : '🔇'}
-        </button>
+        {/* Sound toggle & Volume control (Chỉ hiển thị ngoài màn hình Map vì MapScreen đã có thanh điều khiển riêng) */}
+        {screen !== 'map' && (
+          <div className="absolute top-3 right-3 z-50 flex items-center gap-1.5">
+            <button
+              onClick={() => {
+                playPopSound();
+                setShowVolumePopup((prev) => !prev);
+              }}
+              className="btn-pop w-8 h-8 rounded-2xl bg-amber-400 border-2 border-amber-800 shadow-[0_2px_0_#78350f] flex items-center justify-center text-xs"
+              title="Tùy chỉnh âm lượng nhạc nền"
+            >
+              🎵
+            </button>
+            <button
+              onClick={() => {
+                playPopSound();
+                toggleSound();
+              }}
+              className="btn-pop w-8 h-8 rounded-2xl bg-amber-400 border-2 border-amber-800 shadow-[0_2px_0_#78350f] flex items-center justify-center text-xs"
+              title={soundEnabled ? 'Tắt toàn bộ âm thanh' : 'Bật âm thanh'}
+            >
+              {soundEnabled ? '🔊' : '🔇'}
+            </button>
+          </div>
+        )}
+
+        {/* Volume popover slider */}
+        <AnimatePresence>
+          {showVolumePopup && screen !== 'map' && (
+            <motion.div
+              initial={{ opacity: 0, y: -10, scale: 0.9 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -10, scale: 0.9 }}
+              className="absolute top-13 right-3 z-50 p-3 bg-amber-100 border-2 border-amber-800 rounded-2xl shadow-xl flex flex-col gap-1.5 w-44 text-amber-950"
+            >
+              <div className="flex justify-between items-center text-[11px] font-black uppercase tracking-wider">
+                <span>Âm lượng nhạc</span>
+                <span className="text-amber-800">{Math.round(musicVolume * 100)}%</span>
+              </div>
+              <input
+                type="range"
+                min="0"
+                max="1"
+                step="0.05"
+                value={musicVolume}
+                onChange={(e) => {
+                  const val = parseFloat(e.target.value);
+                  setMusicVolume(val);
+                }}
+                className="w-full accent-amber-600 cursor-pointer"
+              />
+              <button
+                onClick={() => setShowVolumePopup(false)}
+                className="mt-1 py-1 rounded-xl bg-amber-400 border border-amber-800 text-[10px] font-black text-amber-950 uppercase"
+              >
+                Đóng
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         <AnimatePresence mode="wait">
           {screen === 'start' && (

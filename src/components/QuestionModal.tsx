@@ -7,6 +7,15 @@ export default function QuestionModal() {
   const { currentLevelIndex, attemptsLeft, goToMap, levels } = useGameStore();
   const level = levels[currentLevelIndex] || levels[0];
 
+  if (!level) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full bg-[#fef3c7] text-amber-950 font-bold p-6 text-center">
+        <span className="text-4xl animate-bounce mb-2">🐾</span>
+        <p className="text-sm">Đang tải câu hỏi thử thách...</p>
+      </div>
+    );
+  }
+
   return (
     <AnimatePresence>
       <motion.div

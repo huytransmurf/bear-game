@@ -147,23 +147,18 @@ export default function KnowledgeCard() {
         </div>
       </motion.div>
 
-      {/* Conservation Hotline Box */}
+      {/* Conservation Action Box */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.5 }}
-        className="mx-4 mb-4 p-3 rounded-2xl bg-amber-100 border-2 border-amber-400/80 flex items-center gap-3"
+        className="mx-4 mb-4 p-3.5 rounded-2xl bg-amber-100 border-2 border-amber-400/80 flex items-center gap-3"
       >
-        <div className="w-9 h-9 rounded-xl bg-amber-400 border border-amber-600 flex items-center justify-center text-lg shrink-0">
-          📞
+        <div className="w-10 h-10 rounded-xl bg-amber-400 border border-amber-600 flex items-center justify-center text-xl shrink-0">
+          🌿
         </div>
-        <div className="text-xs text-amber-950 leading-snug">
-          <span className="font-bold">Thấy gấu bị nuôi nhốt hoặc buôn bán mật?</span>
-          <br />
-          Gọi đường dây nóng miễn phí:{' '}
-          <a href="tel:1800599954" className="font-black text-amber-900 underline">
-            1800 599 954
-          </a>
+        <div className="text-xs text-amber-950 leading-relaxed font-bold">
+          Chung tay bảo vệ các cá thể gấu tự nhiên và lan tỏa thông điệp yêu thương động vật hoang dã!
         </div>
       </motion.div>
 

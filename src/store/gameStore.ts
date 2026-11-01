@@ -23,6 +23,7 @@ export interface Level {
 export interface GameState {
   // Session & Identity
   sessionId: string;
+  lastActiveTimestamp: number;
   screen: Screen;
   playerName: string;
   bearType: BearType;
@@ -38,6 +39,7 @@ export interface GameState {
   hintUsed: boolean;
   completedLevels: number[];
   soundEnabled: boolean;
+  musicVolume: number; // 0.0 to 1.0
   lastCorrectLevel: Level | null;
   lastEarnedPoints: number;
   levelStartTime: number;
@@ -64,136 +66,22 @@ export interface GameState {
   nextLevel: () => void;
   restartGame: () => void;
   toggleSound: () => void;
+  setMusicVolume: (volume: number) => void;
   goToMap: () => void;
   openLeaderboard: () => void;
   closeLeaderboard: () => void;
   syncScore: () => Promise<void>;
 }
 
-// Built-in initial levels (hoàn toàn độc lập, không cần file JSON cục bộ)
-export const DEFAULT_LEVELS: Level[] = [
-  {
-    id: 1,
-    question: 'Loài gấu nhỏ nhất thế giới, sống ở rừng nhiệt đới Đông Nam Á, có chiếc lưỡi dài để lấy mật ong?',
-    answer: 'GAUCHO',
-    displayAnswer: 'Gấu chó',
-    hint: 'Tên loài có 6 chữ cái, bắt đầu bằng G',
-    fact: 'Gấu chó (Sun Bear) là loài gấu nhỏ nhất thế giới, nặng chỉ 25–65 kg. Chúng có lưỡi dài đến 25 cm để lấy mật ong và côn trùng trong các khe cây. Hiện là loài dễ bị tổn thương (Vulnerable) theo IUCN.',
-    source: 'IUCN Red List – Helarctos malayanus',
-    distractors: ['GAMRUNG', 'GAUBAC', 'RUNG'],
-    stationTitle: 'Tổ Ong Rừng',
-    stationSubtitle: 'Khám phá loài Gấu Chó nhỏ nhất thế giới',
-    themeIcon: '🍯',
-    badge: 'Chặng 1',
-  },
-  {
-    id: 2,
-    question: 'Loài gấu đen châu Á, có mảng lông trắng hình chữ V hoặc chữ U đặc trưng trên ngực?',
-    answer: 'GAUNGUA',
-    displayAnswer: 'Gấu ngựa',
-    hint: 'Tên loài có 7 chữ cái, thường thấy ở vùng núi Việt Nam',
-    fact: 'Gấu ngựa (Asiatic Black Bear) có thể leo cây rất giỏi. Ở Việt Nam, chúng từng phổ biến ở nhiều vùng rừng núi, nhưng hiện đang bị đe dọa nghiêm trọng do săn bắt trái phép và khai thác mật gấu.',
-    source: 'WWF – Ursus thibetanus',
-    distractors: ['DENRUNG', 'MATKONG', 'CHAU'],
-    stationTitle: 'Rừng Khộp Núi Cao',
-    stationSubtitle: 'Gấu Ngựa dũng mãnh và biệt tài leo cây',
-    themeIcon: '🌲',
-    badge: 'Chặng 2',
-  },
-  {
-    id: 3,
-    question: 'Thứ gì được lấy từ gấu nuôi nhốt, gây đau đớn tột cùng và bị cấm theo pháp luật Việt Nam?',
-    answer: 'MAT',
-    displayAnswer: 'Mật',
-    hint: '3 chữ cái, là chất lỏng vàng quý giá',
-    fact: 'Nuôi nhốt gấu lấy mật là hành vi bị cấm hoàn toàn tại Việt Nam theo Nghị định 06/2019/NĐ-CP. Việc chích hút mật gây đau đớn kinh khủng và nhiễm trùng mãn tính cho gấu. Tổ chức Animals Asia đang giải cứu hàng trăm cá thể gấu tại Việt Nam.',
-    source: 'Animals Asia Foundation – Việt Nam',
-    distractors: ['NUOI', 'LONG', 'CAM'],
-    stationTitle: 'Suối Nước Tự Do',
-    stationSubtitle: 'Nói không với nuôi nhốt hút mật tàn nhẫn',
-    themeIcon: '🔓',
-    badge: 'Chặng 3',
-  },
-  {
-    id: 4,
-    question: 'Nguyên nhân hàng đầu khiến gấu mất nơi sinh sống ở Việt Nam là gì?',
-    answer: 'PHARUNG',
-    displayAnswer: 'Phá rừng',
-    hint: '7 chữ cái, hành vi tàn phá cây xanh và môi trường sống của gấu',
-    fact: 'Việt Nam đã mất hơn 50% diện tích rừng tự nhiên trong nửa thế kỷ qua. Mất rừng đồng nghĩa với mất sinh cảnh của gấu và hàng nghìn loài khác. Trồng lại rừng và bảo vệ rừng nguyên sinh là chìa khóa bảo tồn.',
-    source: 'WWF Việt Nam – Báo cáo hiện trạng rừng 2023',
-    distractors: ['BUON', 'BAN', 'THIEU'],
-    stationTitle: 'Đồi Mầm Tái Sinh',
-    stationSubtitle: 'Bảo vệ mái nhà rừng xanh trước nạn chặt phá',
-    themeIcon: '🌱',
-    badge: 'Chặng 4',
-  },
-  {
-    id: 5,
-    question: 'Hành động đúng đắn khi bạn phát hiện hành vi buôn bán hoặc nuôi nhốt gấu trái phép?',
-    answer: 'BAOCAO',
-    displayAnswer: 'Báo cáo',
-    hint: '6 chữ cái, bắt đầu bằng B',
-    fact: 'Khi phát hiện buôn bán động vật hoang dã, hãy gọi đường dây nóng: Kiểm lâm – 1800 599 954 (miễn phí). Bạn cũng có thể báo qua ứng dụng iNaturalist hoặc liên hệ ENV (Education for Nature Vietnam).',
-    source: 'ENV – Education for Nature Vietnam',
-    distractors: ['TRON', 'LANG', 'IM'],
-    stationTitle: 'Trạm Kiểm Lâm Rừng',
-    stationSubtitle: 'Gọi ngay đường dây nóng 1800 599 954',
-    themeIcon: '📢',
-    badge: 'Chặng 5',
-  },
-  {
-    id: 6,
-    question: 'Tổ chức quốc tế nổi tiếng đánh giá mức độ nguy cấp của các loài động vật trên toàn thế giới?',
-    answer: 'IUCN',
-    displayAnswer: 'IUCN',
-    hint: '4 chữ cái viết tắt tiếng Anh',
-    fact: 'IUCN (Liên minh Bảo tồn Thiên nhiên Quốc tế) duy trì Danh sách Đỏ – cơ sở dữ liệu toàn diện nhất về tình trạng bảo tồn sinh vật. Cả gấu chó và gấu ngựa đều nằm trong Danh sách Đỏ IUCN với mức độ "Dễ bị tổn thương".',
-    source: 'iucnredlist.org',
-    distractors: ['WWF', 'CITES', 'ENV'],
-    stationTitle: 'Đảo Sách Đỏ',
-    stationSubtitle: 'Liên minh bảo tồn thiên nhiên quốc tế IUCN',
-    themeIcon: '📜',
-    badge: 'Chặng 6',
-  },
-  {
-    id: 7,
-    question: 'Công ước quốc tế kiểm soát buôn bán động, thực vật hoang dã nguy cấp xuyên biên giới?',
-    answer: 'CITES',
-    displayAnswer: 'CITES',
-    hint: '5 chữ cái viết tắt, liên quan đến thương mại quốc tế',
-    fact: 'CITES (Công ước về Buôn bán Quốc tế các loài động, thực vật hoang dã nguy cấp) được 184 quốc gia ký kết. Cả hai loài gấu ở Việt Nam đều được bảo vệ theo CITES Phụ lục I – cấm buôn bán thương mại.',
-    source: 'cites.org',
-    distractors: ['UNEP', 'UNESCO', 'UNODC'],
-    stationTitle: 'Thành Trì CITES',
-    stationSubtitle: 'Công ước ngăn chặn buôn bán xuyên quốc gia',
-    themeIcon: '🛡️',
-    badge: 'Chặng 7',
-  },
-  {
-    id: 8,
-    question: 'Hành vi nào sau đây giúp bảo vệ gấu trực tiếp nhất: không mua sản phẩm từ động vật hoang dã?',
-    answer: 'TUCHOI',
-    displayAnswer: 'Từ chối',
-    hint: '6 chữ cái, là hành động không chấp nhận điều gì đó',
-    fact: 'Mỗi người tiêu dùng có sức mạnh thay đổi thị trường. Khi bạn từ chối mua mật gấu, cao hổ, sừng tê giác... bạn đang trực tiếp giảm nhu cầu và cứu động vật hoang dã. Hãy chia sẻ thông điệp này!',
-    source: 'Four Paws International',
-    distractors: ['MUALAI', 'THICUNG', 'BUON'],
-    stationTitle: 'Khu Cứu Hộ Gấu',
-    stationSubtitle: 'Mái nhà bình yên & tự do cho các bạn gấu',
-    themeIcon: '🏆',
-    badge: 'Đích Đến',
-  },
-];
-
-export const LEVELS: Level[] = DEFAULT_LEVELS;
-
 export const MAX_ATTEMPTS = 3;
-export const POINTS_CORRECT = 100;
-export const POINTS_NO_HINT_BONUS = 20;
-export const POINTS_SPEED_FAST_BONUS = 30; // under 10 seconds
-export const POINTS_SPEED_MED_BONUS = 15; // under 20 seconds
-export const POINTS_WRONG_PENALTY = 20;
+export const BASE_POINTS_CORRECT = 100;
+export const MAX_SPEED_BONUS = 60; // Thưởng tốc độ tối đa cho người trả lời cực nhanh
+export const SPEED_WINDOW_SECONDS = 30; // Trong vòng 30s tính bonus giảm dần
+export const NO_HINT_BONUS = 23; // Thưởng nếu không xem gợi ý (số lẻ tạo độ phân tán)
+export const ATTEMPT_BONUS_PER_TRY = 11; // Thưởng nếu đúng ngay lần đầu/còn nhiều lượt thử
+export const WRONG_PENALTY_POINTS = 17; // Trừ điểm khi chọn sai
+
+export const SESSION_MAX_AGE_MS = 30 * 60 * 1000; // 30 phút hết hạn phiên
 
 function createSessionId(): string {
   return `bear_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
@@ -203,12 +91,14 @@ export const useGameStore = create<GameState>()(
   persist(
     (set, get) => ({
       sessionId: createSessionId(),
+      lastActiveTimestamp: Date.now(),
       screen: 'start',
       playerName: '',
       bearType: 'sunbear',
 
-      levels: DEFAULT_LEVELS,
-      isLoadingLevels: false,
+      // Levels được tải 100% từ cơ sở dữ liệu Supabase (bear_levels table)
+      levels: [],
+      isLoadingLevels: true,
 
       currentLevelIndex: 0,
       score: 0,
@@ -216,6 +106,7 @@ export const useGameStore = create<GameState>()(
       hintUsed: false,
       completedLevels: [],
       soundEnabled: true,
+      musicVolume: 0.5,
       lastCorrectLevel: null,
       lastEarnedPoints: 0,
       levelStartTime: 0,
@@ -228,24 +119,31 @@ export const useGameStore = create<GameState>()(
 
       loadLevels: async () => {
         set({ isLoadingLevels: true });
-        const res = await fetchLevelsFromSupabase();
-        if (res.levels && res.levels.length > 0) {
-          const mapped: Level[] = res.levels.map((row) => ({
-            id: row.id,
-            question: row.question,
-            answer: row.answer,
-            displayAnswer: row.display_answer || row.answer,
-            hint: row.hint || '',
-            fact: row.fact || '',
-            source: row.source || '',
-            distractors: Array.isArray(row.distractors) ? row.distractors : [],
-            stationTitle: row.station_title,
-            stationSubtitle: row.station_subtitle,
-            themeIcon: row.theme_icon,
-            badge: row.badge,
-          }));
-          set({ levels: mapped, isLoadingLevels: false });
-        } else {
+        try {
+          const res = await fetchLevelsFromSupabase();
+          if (res.levels && res.levels.length > 0) {
+            const mapped: Level[] = res.levels.map((row) => ({
+              id: row.id,
+              question: row.question,
+              answer: row.answer,
+              displayAnswer: row.display_answer || row.answer,
+              hint: row.hint || '',
+              fact: row.fact || '',
+              source: row.source || '',
+              distractors: Array.isArray(row.distractors) ? row.distractors : [],
+              stationTitle: row.station_title,
+              stationSubtitle: row.station_subtitle,
+              themeIcon: row.theme_icon,
+              badge: row.badge,
+            }));
+            const state = get();
+            const safeLevelIndex = state.currentLevelIndex >= mapped.length ? 0 : state.currentLevelIndex;
+            set({ levels: mapped, currentLevelIndex: safeLevelIndex, isLoadingLevels: false });
+          } else {
+            set({ isLoadingLevels: false });
+          }
+        } catch (e) {
+          console.error('[loadLevels error]', e);
           set({ isLoadingLevels: false });
         }
       },
@@ -255,8 +153,10 @@ export const useGameStore = create<GameState>()(
 
       startGame: () => {
         const newSessionId = createSessionId();
+        const now = Date.now();
         set({
           sessionId: newSessionId,
+          lastActiveTimestamp: now,
           screen: 'map',
           currentLevelIndex: 0,
           score: 0,
@@ -266,7 +166,7 @@ export const useGameStore = create<GameState>()(
           lastCorrectLevel: null,
           lastEarnedPoints: 0,
           isReviewMode: false,
-          levelStartTime: Date.now(),
+          levelStartTime: now,
         });
         get().syncScore();
       },
@@ -274,13 +174,14 @@ export const useGameStore = create<GameState>()(
       resumeGame: () => {
         const state = get();
         if (state.screen === 'start') {
-          set({ screen: 'map' });
+          set({ screen: 'map', lastActiveTimestamp: Date.now() });
         }
       },
 
       resetSession: () => {
         set({
           sessionId: createSessionId(),
+          lastActiveTimestamp: Date.now(),
           screen: 'start',
           currentLevelIndex: 0,
           score: 0,
@@ -300,9 +201,10 @@ export const useGameStore = create<GameState>()(
           hintUsed: false,
           isReviewMode: false,
           levelStartTime: Date.now(),
+          lastActiveTimestamp: Date.now(),
         }),
 
-      goToMap: () => set({ screen: 'map', isReviewMode: false }),
+      goToMap: () => set({ screen: 'map', isReviewMode: false, lastActiveTimestamp: Date.now() }),
 
       submitAnswer: (correct) => {
         const state = get();
@@ -310,17 +212,27 @@ export const useGameStore = create<GameState>()(
         const currentLevel = state.levels[currentIdx] || state.levels[0];
 
         if (correct) {
-          // Speed bonus calculation (Kahoot-style)
-          const elapsedSec = (Date.now() - (state.levelStartTime || Date.now())) / 1000;
-          let speedBonus = 0;
-          if (elapsedSec <= 10) {
-            speedBonus = POINTS_SPEED_FAST_BONUS;
-          } else if (elapsedSec <= 20) {
-            speedBonus = POINTS_SPEED_MED_BONUS;
-          }
+          // Tính thời gian hoàn thành (tính theo giây với độ chính xác số thập phân)
+          const elapsedSec = Math.max(0.5, (Date.now() - (state.levelStartTime || Date.now())) / 1000);
+          
+          // 1. Thưởng tốc độ liên tục (Kahoot-style continuous speed bonus):
+          // Nếu trả lời trong vòng 30s: điểm thưởng giảm dần theo từng giây và phần trăm giây
+          // Trả lời 2.3s sẽ nhiều điểm hơn 2.8s -> tạo điểm số lẻ độc nhất, tránh trùng lặp
+          const timeRatio = Math.max(0, (SPEED_WINDOW_SECONDS - elapsedSec) / SPEED_WINDOW_SECONDS);
+          const rawSpeedBonus = Math.round(timeRatio * MAX_SPEED_BONUS * 10) / 10;
+          const speedBonus = Math.max(3, Math.round(rawSpeedBonus)); // tối thiểu 3 điểm nếu quá 30s
 
-          const hintBonus = state.hintUsed ? 0 : POINTS_NO_HINT_BONUS;
-          const pointsEarned = POINTS_CORRECT + hintBonus + speedBonus;
+          // 2. Thưởng độ chính xác (attemptsLeft):
+          // Đúng ngay lần đầu (attemptsLeft = 3) được 3 * 11 = 33 điểm
+          // Đúng lần hai (attemptsLeft = 2) được 2 * 11 = 22 điểm
+          // Đúng lần ba (attemptsLeft = 1) được 1 * 11 = 11 điểm
+          const accuracyBonus = state.attemptsLeft * ATTEMPT_BONUS_PER_TRY;
+
+          // 3. Thưởng không xem gợi ý:
+          const hintBonus = state.hintUsed ? 0 : NO_HINT_BONUS;
+
+          // Tổng điểm vòng chơi: số điểm lẻ tự nhiên (ví dụ 100 + 47 + 33 + 23 = 203)
+          const pointsEarned = BASE_POINTS_CORRECT + accuracyBonus + hintBonus + speedBonus;
           const newScore = state.score + pointsEarned;
           const newCompleted = Array.from(new Set([...state.completedLevels, currentIdx]));
 
@@ -336,7 +248,7 @@ export const useGameStore = create<GameState>()(
           get().syncScore();
         } else {
           const newAttempts = state.attemptsLeft - 1;
-          const newScore = Math.max(0, state.score - POINTS_WRONG_PENALTY);
+          const newScore = Math.max(0, state.score - WRONG_PENALTY_POINTS);
 
           if (newAttempts <= 0) {
             const newCompleted = Array.from(new Set([...state.completedLevels, currentIdx]));
@@ -416,6 +328,7 @@ export const useGameStore = create<GameState>()(
       },
 
       toggleSound: () => set((s) => ({ soundEnabled: !s.soundEnabled })),
+      setMusicVolume: (volume) => set({ musicVolume: Math.max(0, Math.min(1, volume)) }),
 
       openLeaderboard: () => set({ showLeaderboard: true }),
       closeLeaderboard: () => set({ showLeaderboard: false }),
@@ -441,6 +354,7 @@ export const useGameStore = create<GameState>()(
       name: 'bear-game-storage',
       partialize: (state) => ({
         sessionId: state.sessionId,
+        lastActiveTimestamp: state.lastActiveTimestamp,
         screen: state.screen,
         playerName: state.playerName,
         bearType: state.bearType,
@@ -453,7 +367,22 @@ export const useGameStore = create<GameState>()(
         lastEarnedPoints: state.lastEarnedPoints,
         levelStartTime: state.levelStartTime,
         soundEnabled: state.soundEnabled,
+        musicVolume: state.musicVolume,
       }),
+      onRehydrateStorage: () => (state) => {
+        // Kiểm tra hết hạn phiên 30 phút khi khởi động lại ứng dụng
+        if (state) {
+          const now = Date.now();
+          const lastActive = state.lastActiveTimestamp || 0;
+          if (lastActive > 0 && now - lastActive > SESSION_MAX_AGE_MS) {
+            // Phiên đã quá 30 phút: tự động làm mới session
+            state.resetSession();
+          } else {
+            // Cập nhật timestamp hoạt động mới
+            state.lastActiveTimestamp = now;
+          }
+        }
+      },
     }
   )
 );

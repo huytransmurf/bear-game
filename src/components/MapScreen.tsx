@@ -19,142 +19,90 @@ export interface StationData {
   title: string;
   subtitle: string;
   themeIcon: string;
-  landmark: 'beehive' | 'ancient-tree' | 'free-stream' | 'nursery' | 'ranger-station' | 'red-book' | 'shield' | 'sanctuary-gate';
   badge: string;
 }
 
-export const MAP_STATIONS: StationData[] = [
-  {
-    id: 0,
-    x: 190,
-    y: 115,
-    title: 'Tổ Ong Rừng',
-    subtitle: 'Khám phá loài Gấu Chó nhỏ nhất thế giới',
-    themeIcon: '🍯',
-    landmark: 'beehive',
-    badge: 'Chặng 1',
-  },
-  {
-    id: 1,
-    x: 280,
-    y: 245,
-    title: 'Rừng Khộp Núi Cao',
-    subtitle: 'Gấu Ngựa dũng mãnh và biệt tài leo cây',
-    themeIcon: '🌲',
-    landmark: 'ancient-tree',
-    badge: 'Chặng 2',
-  },
-  {
-    id: 2,
-    x: 95,
-    y: 375,
-    title: 'Suối Nước Tự Do',
-    subtitle: 'Nói không với nuôi nhốt hút mật tàn nhẫn',
-    themeIcon: '🔓',
-    landmark: 'free-stream',
-    badge: 'Chặng 3',
-  },
-  {
-    id: 3,
-    x: 285,
-    y: 505,
-    title: 'Đồi Mầm Tái Sinh',
-    subtitle: 'Bảo vệ mái nhà rừng xanh trước nạn chặt phá',
-    themeIcon: '🌱',
-    landmark: 'nursery',
-    badge: 'Chặng 4',
-  },
-  {
-    id: 4,
-    x: 95,
-    y: 635,
-    title: 'Trạm Kiểm Lâm Rừng',
-    subtitle: 'Gọi ngay đường dây nóng 1800 599 954',
-    themeIcon: '📢',
-    landmark: 'ranger-station',
-    badge: 'Chặng 5',
-  },
-  {
-    id: 5,
-    x: 285,
-    y: 765,
-    title: 'Đảo Sách Đỏ',
-    subtitle: 'Liên minh bảo tồn thiên nhiên quốc tế IUCN',
-    themeIcon: '📜',
-    landmark: 'red-book',
-    badge: 'Chặng 6',
-  },
-  {
-    id: 6,
-    x: 100,
-    y: 895,
-    title: 'Thành Trì CITES',
-    subtitle: 'Công ước ngăn chặn buôn bán xuyên quốc gia',
-    themeIcon: '🛡️',
-    landmark: 'shield',
-    badge: 'Chặng 7',
-  },
-  {
-    id: 7,
-    x: 190,
-    y: 1030,
-    title: 'Khu Cứu Hộ Gấu',
-    subtitle: 'Mái nhà bình yên & tự do cho các bạn gấu',
-    themeIcon: '🏆',
-    landmark: 'sanctuary-gate',
-    badge: 'Đích Đến',
-  },
-];
+export function getStationCoords(idx: number, total: number): { x: number; y: number } {
+  // If the station is the very last one, center it near the bottom
+  if (idx === total - 1) {
+    return { x: 190, y: 110 + idx * 110 };
+  }
+  // Otherwise alternate left / right
+  const isLeft = idx % 2 === 0;
+  return {
+    x: isLeft ? 100 : 280,
+    y: 110 + idx * 110,
+  };
+}
 
-// Continuous bezier curve passing directly through the 8 stations
-const SMOOTH_TRAIL_PATH =
-  'M 190,115 ' +
-  'C 265,125 315,185 280,245 ' +
-  'C 245,305 90,305 95,375 ' +
-  'C 100,445 295,435 285,505 ' +
-  'C 275,575 90,565 95,635 ' +
-  'C 100,705 295,695 285,765 ' +
-  'C 275,835 90,825 100,895 ' +
-  'C 105,965 145,1005 190,1030';
+export function generateTrailPath(coords: { x: number; y: number }[]): string {
+  if (coords.length === 0) return '';
+  if (coords.length === 1) return `M ${coords[0].x},${coords[0].y}`;
+
+  let path = `M ${coords[0].x},${coords[0].y}`;
+  for (let i = 0; i < coords.length - 1; i++) {
+    const curr = coords[i];
+    const next = coords[i + 1];
+    const midY = (curr.y + next.y) / 2;
+    path += ` C ${curr.x},${midY} ${next.x},${midY} ${next.x},${next.y}`;
+  }
+  return path;
+}
+
 
 // Cobblestones along the trail for tactile cartoon feel
 const COBBLESTONES = [
-  { x: 230, y: 140, r: 4 },
-  { x: 275, y: 175, r: 5 },
-  { x: 295, y: 210, r: 4.5 },
-  { x: 235, y: 280, r: 5 },
-  { x: 175, y: 310, r: 4 },
-  { x: 120, y: 335, r: 4.5 },
-  { x: 120, y: 415, r: 5 },
-  { x: 180, y: 445, r: 4.5 },
-  { x: 250, y: 470, r: 4 },
-  { x: 260, y: 545, r: 5 },
-  { x: 195, y: 575, r: 4.5 },
-  { x: 130, y: 600, r: 4 },
-  { x: 135, y: 675, r: 5 },
-  { x: 195, y: 705, r: 4 },
-  { x: 255, y: 735, r: 4.5 },
-  { x: 250, y: 805, r: 5 },
-  { x: 185, y: 835, r: 4.5 },
-  { x: 130, y: 860, r: 4 },
-  { x: 135, y: 940, r: 5 },
-  { x: 165, y: 980, r: 4.5 },
+  { x: 230, y: 135, r: 4 },
+  { x: 280, y: 165, r: 5 },
+  { x: 295, y: 195, r: 4.5 },
+  { x: 235, y: 260, r: 5 },
+  { x: 175, y: 285, r: 4 },
+  { x: 120, y: 305, r: 4.5 },
+  { x: 120, y: 370, r: 5 },
+  { x: 180, y: 395, r: 4.5 },
+  { x: 250, y: 415, r: 4 },
+  { x: 255, y: 480, r: 5 },
+  { x: 195, y: 505, r: 4.5 },
+  { x: 130, y: 525, r: 4 },
+  { x: 135, y: 590, r: 5 },
+  { x: 195, y: 615, r: 4 },
+  { x: 255, y: 635, r: 4.5 },
+  { x: 255, y: 700, r: 5 },
+  { x: 195, y: 725, r: 4.5 },
+  { x: 130, y: 745, r: 4 },
+  { x: 135, y: 810, r: 5 },
+  { x: 195, y: 835, r: 4 },
+  { x: 255, y: 855, r: 4.5 },
+  { x: 255, y: 920, r: 5 },
+  { x: 195, y: 945, r: 4.5 },
+  { x: 130, y: 965, r: 4 },
+  { x: 135, y: 1030, r: 5 },
+  { x: 195, y: 1055, r: 4 },
+  { x: 255, y: 1075, r: 4.5 },
+  { x: 255, y: 1140, r: 5 },
+  { x: 195, y: 1165, r: 4.5 },
+  { x: 130, y: 1185, r: 4 },
+  { x: 135, y: 1250, r: 5 },
+  { x: 195, y: 1275, r: 4 },
+  { x: 255, y: 1295, r: 4.5 },
+  { x: 240, y: 1370, r: 5 },
+  { x: 175, y: 1400, r: 4.5 },
 ];
 
 // Bear paws stamped on the trail
 const PAW_PRINTS = [
-  { x: 250, y: 155, rot: 50 },
-  { x: 260, y: 295, rot: -110 },
-  { x: 150, y: 320, rot: -140 },
-  { x: 150, y: 430, rot: 40 },
-  { x: 220, y: 455, rot: 30 },
-  { x: 230, y: 560, rot: -120 },
-  { x: 160, y: 585, rot: -130 },
-  { x: 160, y: 690, rot: 35 },
-  { x: 230, y: 715, rot: 30 },
-  { x: 220, y: 820, rot: -120 },
-  { x: 150, y: 845, rot: -130 },
-  { x: 145, y: 955, rot: 45 },
+  { x: 250, y: 150, rot: 50 },
+  { x: 200, y: 275, rot: -130 },
+  { x: 190, y: 390, rot: 40 },
+  { x: 200, y: 495, rot: -130 },
+  { x: 190, y: 610, rot: 40 },
+  { x: 200, y: 715, rot: -130 },
+  { x: 190, y: 830, rot: 40 },
+  { x: 200, y: 935, rot: -130 },
+  { x: 190, y: 1050, rot: 40 },
+  { x: 200, y: 1155, rot: -130 },
+  { x: 190, y: 1270, rot: 40 },
+  { x: 210, y: 1385, rot: -110 },
 ];
 
 const BEAR_PHRASES = [
@@ -171,43 +119,80 @@ export default function MapScreen() {
     currentLevelIndex,
     completedLevels,
     bearType,
+    setBearType,
+    setPlayerName,
     goToQuestion,
     playerName,
     score,
     openLeaderboard,
     viewLevelKnowledge,
+    restartGame,
     levels,
+    isLoadingLevels,
+    loadLevels,
+    soundEnabled,
+    toggleSound,
+    musicVolume,
+    setMusicVolume,
   } = useGameStore();
 
-  const stations = MAP_STATIONS.map((station, idx) => {
-    const lvl = levels[idx];
-    if (!lvl) return station;
+  useEffect(() => {
+    if (levels.length === 0 && !isLoadingLevels) {
+      loadLevels();
+    }
+  }, [levels.length, isLoadingLevels, loadLevels]);
+
+  const stations: StationData[] = levels.map((lvl, idx) => {
+    const coords = getStationCoords(idx, levels.length);
     return {
-      ...station,
-      title: lvl.stationTitle || station.title,
-      subtitle: lvl.stationSubtitle || station.subtitle,
-      themeIcon: lvl.themeIcon || station.themeIcon,
-      badge: lvl.badge || station.badge,
+      id: idx,
+      x: coords.x,
+      y: coords.y,
+      title: lvl.stationTitle || `Trạm ${idx + 1}`,
+      subtitle: lvl.stationSubtitle || '',
+      themeIcon: lvl.themeIcon || '🐾',
+      badge: lvl.badge || (idx === levels.length - 1 ? 'Đích Đến' : `Chặng ${idx + 1}`),
     };
   });
+
+  const smoothTrailPath = generateTrailPath(stations);
+  const totalSvgHeight = Math.max(800, stations.length * 110 + 120);
 
   const [selectedStation, setSelectedStation] = useState<StationData | null>(null);
   const [speechText, setSpeechText] = useState<string>(BEAR_PHRASES[0]);
   const [bearHopCount, setBearHopCount] = useState<number>(0);
+
+  const [showSettingsModal, setShowSettingsModal] = useState<boolean>(false);
+  const [editName, setEditName] = useState<string>(playerName);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const activeStation = stations[currentLevelIndex] || stations[0];
 
   // Auto-scroll to current station on level change
   useEffect(() => {
-    if (scrollRef.current) {
-      const svgH = 1160;
+    if (scrollRef.current && activeStation) {
       const containerH = scrollRef.current.clientHeight;
       const scrollableH = scrollRef.current.scrollHeight;
-      const scrollY = (activeStation.y / svgH) * scrollableH - containerH / 2;
+      const scrollY = (activeStation.y / totalSvgHeight) * scrollableH - containerH / 2;
       scrollRef.current.scrollTo({ top: Math.max(0, scrollY), behavior: 'smooth' });
     }
-  }, [currentLevelIndex, activeStation.y]);
+  }, [currentLevelIndex, activeStation, totalSvgHeight]);
+
+  if (levels.length === 0 || !activeStation) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full bg-[#fef3c7] text-amber-950 font-bold p-6 text-center">
+        <span className="text-4xl animate-bounce mb-3">🐾</span>
+        <p className="text-base font-black mb-1">Đang tải bản đồ hành trình từ Supabase...</p>
+        <p className="text-xs text-amber-800/80 mb-4">Vui lòng chờ trong giây lát</p>
+        <button
+          onClick={() => loadLevels()}
+          className="btn-pop px-4 py-2 rounded-xl bg-amber-400 border-2 border-amber-800 text-amber-950 font-black text-xs shadow-[0_2px_0_#78350f]"
+        >
+          🔄 Thử tải lại
+        </button>
+      </div>
+    );
+  }
 
   const handleBearClick = () => {
     playPopSound();
@@ -221,55 +206,94 @@ export default function MapScreen() {
     setSelectedStation(station);
   };
 
+  const handleSaveProfile = () => {
+    playPopSound();
+    if (editName.trim()) {
+      setPlayerName(editName.trim());
+    }
+    setShowSettingsModal(false);
+  };
+
+  const handleRestart = () => {
+    playPopSound();
+    if (window.confirm('Bạn có chắc muốn chơi lại từ đầu không? Toàn bộ tiến trình sẽ được làm mới.')) {
+      setShowSettingsModal(false);
+      restartGame();
+    }
+  };
+
   return (
     <div className="flex flex-col h-full bg-gradient-to-b from-[#38bdf8] via-[#86efac] to-[#fef08a] overflow-hidden select-none relative font-sans">
       {/* ── TOP HEADER (Tactile cartoon banner) ────────────────────────── */}
-      <header className="flex items-center justify-between px-3 pr-14 py-2.5 bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 border-b-4 border-amber-800 shadow-md shrink-0 z-30">
+      <header className="flex items-center justify-between px-3 py-2 bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 border-b-4 border-amber-800 shadow-md shrink-0 z-20">
         {/* Player Badge */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 shrink-0">
           <div
             onClick={handleBearClick}
-            className="w-10 h-10 rounded-2xl bg-amber-100 border-2 border-amber-800 shadow-[0_2px_0_#78350f] p-0.5 flex items-center justify-center cursor-pointer active:scale-95 transition-transform"
+            className="w-9 h-9 rounded-2xl bg-amber-100 border-2 border-amber-800 shadow-[0_2px_0_#78350f] p-0.5 flex items-center justify-center cursor-pointer active:scale-95 transition-transform"
             title="Bấm vào tớ nè!"
           >
-            <BearMascot type={bearType} size={36} />
+            <BearMascot type={bearType} size={32} />
           </div>
           <div>
-            <div className="text-[10px] font-black uppercase text-amber-900 tracking-wider leading-none">
+            <div className="text-[9px] font-black uppercase text-amber-900 tracking-wider leading-none">
               Nhà thám hiểm
             </div>
-            <div className="text-sm font-black text-amber-950 leading-tight">
+            <div className="text-xs font-black text-amber-950 leading-tight truncate max-w-[80px]">
               {playerName || 'Bạn Gấu Nhỏ'}
             </div>
           </div>
         </div>
 
         {/* Level Counter Banner */}
-        <div className="bg-white/90 border-2 border-amber-800 px-3 py-1 rounded-2xl shadow-[0_2px_0_#78350f]">
-          <div className="text-xs font-black text-amber-950 flex items-center gap-1">
+        <div className="bg-white/90 border-2 border-amber-800 px-2 py-0.5 rounded-2xl shadow-[0_2px_0_#78350f] shrink-0">
+          <div className="text-[11px] font-black text-amber-950 flex items-center gap-1">
             <span>📍</span>
             <span>Trạm {currentLevelIndex + 1}/{stations.length}</span>
           </div>
         </div>
 
-        {/* Honey Score & Leaderboard */}
-        <div className="flex items-center gap-1.5">
+        {/* Honey Score & Leaderboard & Audio & Settings */}
+        <div className="flex items-center gap-1 shrink-0">
+          <button
+            onClick={() => {
+              playPopSound();
+              toggleSound();
+            }}
+            className="btn-pop w-7 h-7 rounded-xl bg-amber-200 border-2 border-amber-800 flex items-center justify-center text-xs shadow-[0_2px_0_#78350f]"
+            title={soundEnabled ? 'Tắt âm thanh' : 'Bật âm thanh'}
+          >
+            {soundEnabled ? '🔊' : '🔇'}
+          </button>
+
+          <button
+            onClick={() => {
+              playPopSound();
+              setEditName(playerName);
+              setShowSettingsModal(true);
+            }}
+            className="btn-pop w-7 h-7 rounded-xl bg-amber-200 border-2 border-amber-800 flex items-center justify-center text-xs shadow-[0_2px_0_#78350f]"
+            title="Đổi tên / Chơi lại / Âm lượng nhạc"
+          >
+            ⚙️
+          </button>
+
           <button
             onClick={() => {
               playPopSound();
               openLeaderboard();
             }}
-            className="btn-pop w-8 h-8 rounded-xl bg-amber-200 border-2 border-amber-800 flex items-center justify-center text-sm shadow-[0_2px_0_#78350f]"
+            className="btn-pop w-7 h-7 rounded-xl bg-amber-200 border-2 border-amber-800 flex items-center justify-center text-xs shadow-[0_2px_0_#78350f]"
             title="Bảng xếp hạng"
           >
             🏆
           </button>
 
-          <div className="flex items-center gap-1.5 bg-amber-900/10 border border-amber-800/30 px-2 py-1 rounded-2xl">
-            <span className="text-sm">🍯</span>
+          <div className="flex items-center gap-1 bg-amber-900/10 border border-amber-800/30 px-1.5 py-0.5 rounded-xl">
+            <span className="text-xs">🍯</span>
             <div className="text-right">
-              <div className="text-[8px] font-black text-amber-900 uppercase leading-none">Mật điểm</div>
-              <div className="text-xs font-black text-amber-950 leading-none sparkle">{score}</div>
+              <div className="text-[7px] font-black text-amber-900 uppercase leading-none">Điểm</div>
+              <div className="text-[11px] font-black text-amber-950 leading-none sparkle">{score}</div>
             </div>
           </div>
         </div>
@@ -294,7 +318,7 @@ export default function MapScreen() {
 
         {/* SVG Game World */}
         <svg
-          viewBox="0 0 380 1160"
+          viewBox={`0 0 380 ${totalSvgHeight}`}
           className="w-full relative z-10"
           style={{ display: 'block' }}
           xmlns="http://www.w3.org/2000/svg"
@@ -423,7 +447,7 @@ export default function MapScreen() {
           {/* ── 3. WINDING CARTOON TRAIL ──────────────────────────── */}
           {/* Deep Trail Shadow */}
           <path
-            d={SMOOTH_TRAIL_PATH}
+            d={smoothTrailPath}
             fill="none"
             stroke="#5c2c08"
             strokeWidth="34"
@@ -432,7 +456,7 @@ export default function MapScreen() {
           />
           {/* Earth Bed */}
           <path
-            d={SMOOTH_TRAIL_PATH}
+            d={smoothTrailPath}
             fill="none"
             stroke="#92400e"
             strokeWidth="26"
@@ -441,7 +465,7 @@ export default function MapScreen() {
           />
           {/* Sandy Bright Path */}
           <path
-            d={SMOOTH_TRAIL_PATH}
+            d={smoothTrailPath}
             fill="none"
             stroke="url(#trailSandGrad)"
             strokeWidth="18"
@@ -479,7 +503,7 @@ export default function MapScreen() {
 
           {/* Animated Golden Sun Dash Trail */}
           <path
-            d={SMOOTH_TRAIL_PATH}
+            d={smoothTrailPath}
             fill="none"
             stroke="#ffffff"
             strokeWidth="3.5"
@@ -588,29 +612,31 @@ export default function MapScreen() {
             <circle cx="0" cy="5" r="2.5" fill="#facc15" />
           </g>
 
-          {/* Landmark 8: Grand Sanctuary Victory Gate */}
-          <g transform="translate(190, 975)">
-            {/* Gate Arch */}
-            <path d="M -32,20 L -32,-8 Q 0,-28 32,-8 L 32,20" fill="none" stroke="#78350f" strokeWidth="6" strokeLinecap="round" />
-            {/* Bunting Garland */}
-            <path d="M -30,-4 Q 0,8 30,-4" fill="none" stroke="#f59e0b" strokeWidth="1.5" />
-            {[-20, -10, 0, 10, 20].map((bx, i) => {
-              const colors = ['#ef4444', '#3b82f6', '#10b981', '#f59e0b', '#ec4899'];
-              return (
-                <polygon
-                  key={i}
-                  points={`${bx},0 ${bx + 6},0 ${bx + 3},8`}
-                  fill={colors[i]}
-                  className="flag-wave"
-                />
-              );
-            })}
-            {/* Welcome Signboard */}
-            <rect x="-26" y="-28" width="52" height="14" fill="#fde047" stroke="#b45309" strokeWidth="2" rx="3" />
-            <text x="0" y="-18" fontSize="8" fontWeight="900" fill="#78350f" textAnchor="middle" fontFamily="Fredoka, sans-serif">
-              VIỆT NAM SANCTUARY
-            </text>
-          </g>
+          {/* Landmark 8: Grand Sanctuary Victory Gate (at last station) */}
+          {stations.length > 0 && (
+            <g transform={`translate(${stations[stations.length - 1].x}, ${stations[stations.length - 1].y + 40})`}>
+              {/* Gate Arch */}
+              <path d="M -32,20 L -32,-8 Q 0,-28 32,-8 L 32,20" fill="none" stroke="#78350f" strokeWidth="6" strokeLinecap="round" />
+              {/* Bunting Garland */}
+              <path d="M -30,-4 Q 0,8 30,-4" fill="none" stroke="#f59e0b" strokeWidth="1.5" />
+              {[-20, -10, 0, 10, 20].map((bx, i) => {
+                const colors = ['#ef4444', '#3b82f6', '#10b981', '#f59e0b', '#ec4899'];
+                return (
+                  <polygon
+                    key={i}
+                    points={`${bx},0 ${bx + 6},0 ${bx + 3},8`}
+                    fill={colors[i]}
+                    className="flag-wave"
+                  />
+                );
+              })}
+              {/* Welcome Signboard */}
+              <rect x="-26" y="-28" width="52" height="14" fill="#fde047" stroke="#b45309" strokeWidth="2" rx="3" />
+              <text x="0" y="-18" fontSize="8" fontWeight="900" fill="#78350f" textAnchor="middle" fontFamily="Fredoka, sans-serif">
+                VIỆT NAM SANCTUARY
+              </text>
+            </g>
+          )}
 
           {/* ── 5. STATION NODES (Interactive 3D Game Buttons) ─────── */}
           {stations.map((station, idx) => {
@@ -892,6 +918,128 @@ export default function MapScreen() {
           <span className="text-base leading-none">▶</span>
         </motion.button>
       </footer>
+
+      {/* ── 9. SETTINGS & PROFILE MODAL (Đổi tên & Chơi lại từ đầu) ──── */}
+      <AnimatePresence>
+        {showSettingsModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm">
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="w-full max-w-sm bg-gradient-to-b from-[#fef3c7] via-[#fde68a] to-[#fed7aa] rounded-3xl border-3 border-amber-800 p-5 shadow-2xl flex flex-col gap-4 text-amber-950"
+            >
+              <div className="flex items-center justify-between border-b-2 border-amber-800/20 pb-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-xl">⚙️</span>
+                  <h3 className="font-black text-base uppercase tracking-wide">
+                    Tùy chọn người chơi
+                  </h3>
+                </div>
+                <button
+                  onClick={() => setShowSettingsModal(false)}
+                  className="w-7 h-7 rounded-full bg-amber-200 border-2 border-amber-800 text-amber-900 font-black text-xs flex items-center justify-center hover:bg-amber-300"
+                >
+                  ✕
+                </button>
+              </div>
+
+              {/* Đổi Tên */}
+              <div>
+                <label className="text-[11px] font-black uppercase text-amber-900 tracking-wider block mb-1.5">
+                  Tên người chơi / Nickname
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={editName}
+                    onChange={(e) => setEditName(e.target.value)}
+                    maxLength={20}
+                    placeholder="Nhập tên mới..."
+                    className="flex-1 px-3 py-2 rounded-xl bg-white border-2 border-amber-400 text-amber-950 font-bold text-sm outline-none focus:border-amber-700"
+                  />
+                  <button
+                    onClick={handleSaveProfile}
+                    className="btn-pop px-3.5 py-2 rounded-xl bg-amber-500 text-white font-black text-xs uppercase border-2 border-amber-800 shadow-[0_2px_0_#78350f]"
+                  >
+                    Lưu tên
+                  </button>
+                </div>
+              </div>
+
+              {/* Đổi Nhân Vật */}
+              <div>
+                <label className="text-[11px] font-black uppercase text-amber-900 tracking-wider block mb-1.5">
+                  Đổi loài gấu đồng hành
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    onClick={() => {
+                      playPopSound();
+                      setBearType('sunbear');
+                    }}
+                    className={`py-2 px-2 rounded-xl border-2 font-black text-xs flex items-center justify-center gap-1.5 transition-all ${
+                      bearType === 'sunbear'
+                        ? 'bg-amber-400 border-amber-800 shadow-[0_2px_0_#78350f]'
+                        : 'bg-white/60 border-amber-300 opacity-70'
+                    }`}
+                  >
+                    <span>☀️</span> Gấu Chó
+                  </button>
+                  <button
+                    onClick={() => {
+                      playPopSound();
+                      setBearType('blackbear');
+                    }}
+                    className={`py-2 px-2 rounded-xl border-2 font-black text-xs flex items-center justify-center gap-1.5 transition-all ${
+                      bearType === 'blackbear'
+                        ? 'bg-slate-700 text-white border-slate-900 shadow-[0_2px_0_#0f172a]'
+                        : 'bg-white/60 border-amber-300 opacity-70'
+                    }`}
+                  >
+                    <span>🌙</span> Gấu Ngựa
+                  </button>
+                </div>
+              </div>
+
+              {/* Âm lượng nhạc nền */}
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="text-[11px] font-black uppercase text-amber-900 tracking-wider">
+                    🎵 Âm lượng nhạc nền
+                  </label>
+                  <span className="text-xs font-black text-amber-900">
+                    {Math.round(musicVolume * 100)}%
+                  </span>
+                </div>
+                <input
+                  type="range"
+                  min="0"
+                  max="1"
+                  step="0.05"
+                  value={musicVolume}
+                  onChange={(e) => setMusicVolume(parseFloat(e.target.value))}
+                  className="w-full accent-amber-600 cursor-pointer"
+                />
+              </div>
+
+              {/* Chơi lại từ đầu */}
+              <div className="pt-2 border-t-2 border-amber-800/20 flex flex-col gap-2">
+                <button
+                  onClick={handleRestart}
+                  className="btn-pop w-full py-2.5 rounded-xl bg-rose-500 hover:bg-rose-600 text-white font-black text-xs uppercase tracking-wider border-2 border-rose-900 shadow-[0_3px_0_#881337] flex items-center justify-center gap-1.5"
+                >
+                  <span>🔄</span>
+                  <span>Chơi lại từ đầu (Reset game)</span>
+                </button>
+                <p className="text-[10px] text-center text-amber-900/70 font-bold">
+                  Bắt đầu lại từ Trạm 1 với điểm số mới.
+                </p>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

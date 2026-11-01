@@ -1,7 +1,40 @@
 import { useGameStore } from '../store/gameStore';
+import bgMusicUrl from '../assets/Thu Am Vocal Nha Cua Gau.mp3';
 
 // Web Audio API Sound Synthesizer (No external assets required)
 let audioCtx: AudioContext | null = null;
+let bgAudio: HTMLAudioElement | null = null;
+
+export function getBgAudio(): HTMLAudioElement | null {
+  if (typeof window === 'undefined') return null;
+  if (!bgAudio) {
+    bgAudio = new Audio(bgMusicUrl);
+    bgAudio.loop = true;
+    bgAudio.preload = 'auto';
+    const store = useGameStore.getState();
+    bgAudio.volume = store.soundEnabled ? store.musicVolume : 0;
+  }
+  return bgAudio;
+}
+
+export function updateMusicPlayback() {
+  if (typeof window === 'undefined') return;
+  const store = useGameStore.getState();
+  const audio = getBgAudio();
+  if (!audio) return;
+
+  if (store.soundEnabled && store.musicVolume > 0) {
+    audio.volume = store.musicVolume;
+    if (audio.paused) {
+      audio.play().catch(() => {
+        // Autoplay may be blocked until user clicks
+      });
+    }
+  } else {
+    audio.volume = 0;
+    audio.pause();
+  }
+}
 
 function getAudioContext(): AudioContext | null {
   if (typeof window === 'undefined') return null;

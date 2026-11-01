@@ -15,6 +15,7 @@ export interface LeaderboardEntry {
   score: number;
   completedLevelsCount: number;
   updatedAt?: string;
+  isDeleted?: boolean;
 }
 
 export interface SupabaseLevelRow {
@@ -146,6 +147,7 @@ export async function syncScoreToLeaderboard(
         bear_type: entry.bearType,
         score: entry.score,
         completed_levels_count: entry.completedLevelsCount,
+        is_deleted: false, // Khi người chơi mới tham gia hoặc cập nhật điểm, đảm bảo không bị ẩn
         updated_at: new Date().toISOString(),
       },
       { onConflict: 'session_id' }
@@ -167,28 +169,37 @@ export async function syncScoreToLeaderboard(
 /**
  * Fetch top leaderboard entries.
  */
-export async function fetchLeaderboard(limit = 30): Promise<{
+export async function fetchLeaderboard(limit = 100, includeDeleted = false): Promise<{
   entries: LeaderboardEntry[];
   isCloud: boolean;
 }> {
   if (!isSupabaseConfigured || !supabase) {
     const local = getLocalLeaderboard()
-      .sort((a, b) => b.score - a.score)
+      .filter((item) => (includeDeleted ? true : !item.isDeleted))
+      .sort((a, b) => new Date(b.updatedAt || 0).getTime() - new Date(a.updatedAt || 0).getTime())
       .slice(0, limit);
     return { entries: local, isCloud: false };
   }
 
   try {
-    const { data, error } = await supabase
+    let query = supabase
       .from('bear_leaderboard')
-      .select('session_id, player_name, bear_type, score, completed_levels_count, updated_at')
-      .order('score', { ascending: false })
-      .order('updated_at', { ascending: true })
+      .select('session_id, player_name, bear_type, score, completed_levels_count, updated_at, is_deleted')
+      .order('updated_at', { ascending: false }) // Xếp theo thời gian gần nhất
       .limit(limit);
+
+    if (!includeDeleted) {
+      query = query.or('is_deleted.is.null,is_deleted.eq.false');
+    }
+
+    const { data, error } = await query;
 
     if (error || !data) {
       console.warn('[Supabase Fetch Error, fallback to local]', error?.message);
-      const local = getLocalLeaderboard().sort((a, b) => b.score - a.score).slice(0, limit);
+      const local = getLocalLeaderboard()
+        .filter((item) => (includeDeleted ? true : !item.isDeleted))
+        .sort((a, b) => new Date(b.updatedAt || 0).getTime() - new Date(a.updatedAt || 0).getTime())
+        .slice(0, limit);
       return { entries: local, isCloud: false };
     }
 
@@ -199,13 +210,76 @@ export async function fetchLeaderboard(limit = 30): Promise<{
       score: row.score,
       completedLevelsCount: row.completed_levels_count,
       updatedAt: row.updated_at,
+      isDeleted: Boolean(row.is_deleted),
     }));
 
     return { entries: formatted, isCloud: true };
   } catch (err) {
     console.warn('[Supabase Fetch Exception, fallback to local]', err);
-    const local = getLocalLeaderboard().sort((a, b) => b.score - a.score).slice(0, limit);
+    const local = getLocalLeaderboard()
+      .filter((item) => (includeDeleted ? true : !item.isDeleted))
+      .sort((a, b) => new Date(b.updatedAt || 0).getTime() - new Date(a.updatedAt || 0).getTime())
+      .slice(0, limit);
     return { entries: local, isCloud: false };
+  }
+}
+
+/**
+ * Xóa mềm (soft delete) tất cả người chơi hoặc từng người chơi.
+ * Đánh dấu is_deleted = true để không hiện trên bảng xếp hạng mà vẫn giữ snapshot.
+ */
+export async function softDeleteAllLeaderboard(): Promise<{ success: boolean; error?: string }> {
+  // Cập nhật local storage
+  const currentList = getLocalLeaderboard();
+  const updatedList = currentList.map((item) => ({ ...item, isDeleted: true }));
+  saveLocalLeaderboard(updatedList);
+
+  if (!isSupabaseConfigured || !supabase) {
+    return { success: true };
+  }
+
+  try {
+    const { error } = await supabase
+      .from('bear_leaderboard')
+      .update({ is_deleted: true })
+      .neq('session_id', '__never_match__'); // Update tất cả các dòng hiện có
+
+    if (error) {
+      console.warn('[Supabase Soft Delete Error]', error.message);
+      return { success: false, error: error.message };
+    }
+    return { success: true };
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    return { success: false, error: msg };
+  }
+}
+
+/**
+ * Khôi phục lại toàn bộ người chơi đã xóa mềm (nếu cần).
+ */
+export async function restoreAllLeaderboard(): Promise<{ success: boolean; error?: string }> {
+  const currentList = getLocalLeaderboard();
+  const updatedList = currentList.map((item) => ({ ...item, isDeleted: false }));
+  saveLocalLeaderboard(updatedList);
+
+  if (!isSupabaseConfigured || !supabase) {
+    return { success: true };
+  }
+
+  try {
+    const { error } = await supabase
+      .from('bear_leaderboard')
+      .update({ is_deleted: false })
+      .neq('session_id', '__never_match__');
+
+    if (error) {
+      return { success: false, error: error.message };
+    }
+    return { success: true };
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    return { success: false, error: msg };
   }
 }
 

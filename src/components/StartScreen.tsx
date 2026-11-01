@@ -248,9 +248,9 @@ export default function StartScreen() {
         }}
       >
         {[
-          { icon: '🗺️', value: levels.length, label: 'Trạm dừng' },
-          { icon: '🧠', value: '8+', label: 'Kiến thức' },
-          { icon: '⭐', value: `${levels.length * 150}`, label: 'Điểm tối đa' },
+          { icon: '🗺️', value: levels.length || 13, label: 'Trạm dừng' },
+          { icon: '🧠', value: '13+', label: 'Kiến thức' },
+          { icon: '⭐', value: `${(levels.length || 13) * 216}`, label: 'Điểm tối đa' },
         ].map((stat) => (
           <div key={stat.label} className="flex flex-col items-center">
             <span className="text-lg">{stat.icon}</span>
