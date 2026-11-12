@@ -176,7 +176,7 @@ export async function fetchLeaderboard(limit = 100, includeDeleted = false): Pro
   if (!isSupabaseConfigured || !supabase) {
     const local = getLocalLeaderboard()
       .filter((item) => (includeDeleted ? true : !item.isDeleted))
-      .sort((a, b) => new Date(b.updatedAt || 0).getTime() - new Date(a.updatedAt || 0).getTime())
+      .sort((a, b) => b.score - a.score || new Date(a.updatedAt || 0).getTime() - new Date(b.updatedAt || 0).getTime())
       .slice(0, limit);
     return { entries: local, isCloud: false };
   }
@@ -185,7 +185,8 @@ export async function fetchLeaderboard(limit = 100, includeDeleted = false): Pro
     let query = supabase
       .from('bear_leaderboard')
       .select('session_id, player_name, bear_type, score, completed_levels_count, updated_at, is_deleted')
-      .order('updated_at', { ascending: false }) // Xếp theo thời gian gần nhất
+      .order('score', { ascending: false }) // Ưu tiên xếp hạng theo điểm số cao nhất
+      .order('updated_at', { ascending: true }) // Cùng điểm số thì ai đạt trước xếp trên
       .limit(limit);
 
     if (!includeDeleted) {
@@ -198,7 +199,7 @@ export async function fetchLeaderboard(limit = 100, includeDeleted = false): Pro
       console.warn('[Supabase Fetch Error, fallback to local]', error?.message);
       const local = getLocalLeaderboard()
         .filter((item) => (includeDeleted ? true : !item.isDeleted))
-        .sort((a, b) => new Date(b.updatedAt || 0).getTime() - new Date(a.updatedAt || 0).getTime())
+        .sort((a, b) => b.score - a.score || new Date(a.updatedAt || 0).getTime() - new Date(b.updatedAt || 0).getTime())
         .slice(0, limit);
       return { entries: local, isCloud: false };
     }
@@ -214,14 +215,14 @@ export async function fetchLeaderboard(limit = 100, includeDeleted = false): Pro
         updatedAt: row.updated_at,
         isDeleted: Boolean(row.is_deleted),
       }))
-      .sort((a, b) => new Date(b.updatedAt || 0).getTime() - new Date(a.updatedAt || 0).getTime());
+      .sort((a, b) => b.score - a.score || new Date(a.updatedAt || 0).getTime() - new Date(b.updatedAt || 0).getTime());
 
     return { entries: formatted, isCloud: true };
   } catch (err) {
     console.warn('[Supabase Fetch Exception, fallback to local]', err);
     const local = getLocalLeaderboard()
       .filter((item) => (includeDeleted ? true : !item.isDeleted))
-      .sort((a, b) => new Date(b.updatedAt || 0).getTime() - new Date(a.updatedAt || 0).getTime())
+      .sort((a, b) => b.score - a.score || new Date(a.updatedAt || 0).getTime() - new Date(b.updatedAt || 0).getTime())
       .slice(0, limit);
     return { entries: local, isCloud: false };
   }

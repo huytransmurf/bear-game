@@ -21,7 +21,7 @@ export default function ResultScreen() {
     playFanfareSound();
   }, []);
 
-  const totalLevels = levels.length || 13;
+  const totalLevels = levels.length || 5;
   // Điểm tối đa mỗi level: 100 (cơ bản) + 60 (tốc độ tối đa) + 33 (đúng lần 1) + 23 (không gợi ý) = 216
   const maxScore = totalLevels * 216;
   const percentage = Math.min(100, Math.round((score / maxScore) * 100));

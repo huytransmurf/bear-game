@@ -23,15 +23,22 @@ export interface StationData {
 }
 
 export function getStationCoords(idx: number, total: number): { x: number; y: number } {
-  // If the station is the very last one, center it near the bottom
+  // Khoảng cách theo chiều dọc dựa trên tổng số trạm
+  // Nếu 5 trạm: khoảng cách ~130px; nếu nhiều trạm hơn: co lại hợp lý
+  const stepY = total <= 6 ? 140 : 115;
+  const startY = 120;
+  const y = startY + idx * stepY;
+
+  // Nếu là trạm đích cuối cùng, căn vào giữa
   if (idx === total - 1) {
-    return { x: 190, y: 110 + idx * 110 };
+    return { x: 190, y };
   }
-  // Otherwise alternate left / right
+
+  // Đảo qua lại trái (110) và phải (270) cho cân đối giữa khổ 380px
   const isLeft = idx % 2 === 0;
   return {
-    x: isLeft ? 100 : 280,
-    y: 110 + idx * 110,
+    x: isLeft ? 110 : 270,
+    y,
   };
 }
 
@@ -50,59 +57,47 @@ export function generateTrailPath(coords: { x: number; y: number }[]): string {
 }
 
 
-// Cobblestones along the trail for tactile cartoon feel
+// Sỏi đá cuội dọc chính giữa đường mòn uốn lượn
 const COBBLESTONES = [
-  { x: 230, y: 135, r: 4 },
-  { x: 280, y: 165, r: 5 },
-  { x: 295, y: 195, r: 4.5 },
-  { x: 235, y: 260, r: 5 },
-  { x: 175, y: 285, r: 4 },
-  { x: 120, y: 305, r: 4.5 },
-  { x: 120, y: 370, r: 5 },
-  { x: 180, y: 395, r: 4.5 },
-  { x: 250, y: 415, r: 4 },
-  { x: 255, y: 480, r: 5 },
-  { x: 195, y: 505, r: 4.5 },
-  { x: 130, y: 525, r: 4 },
-  { x: 135, y: 590, r: 5 },
-  { x: 195, y: 615, r: 4 },
-  { x: 255, y: 635, r: 4.5 },
-  { x: 255, y: 700, r: 5 },
-  { x: 195, y: 725, r: 4.5 },
-  { x: 130, y: 745, r: 4 },
-  { x: 135, y: 810, r: 5 },
-  { x: 195, y: 835, r: 4 },
-  { x: 255, y: 855, r: 4.5 },
-  { x: 255, y: 920, r: 5 },
-  { x: 195, y: 945, r: 4.5 },
-  { x: 130, y: 965, r: 4 },
-  { x: 135, y: 1030, r: 5 },
-  { x: 195, y: 1055, r: 4 },
-  { x: 255, y: 1075, r: 4.5 },
-  { x: 255, y: 1140, r: 5 },
-  { x: 195, y: 1165, r: 4.5 },
-  { x: 130, y: 1185, r: 4 },
-  { x: 135, y: 1250, r: 5 },
-  { x: 195, y: 1275, r: 4 },
-  { x: 255, y: 1295, r: 4.5 },
-  { x: 240, y: 1370, r: 5 },
-  { x: 175, y: 1400, r: 4.5 },
+  { x: 127, y: 155, r: 3.5 },
+  { x: 155, y: 174, r: 4.1 },
+  { x: 190, y: 190, r: 4.7 },
+  { x: 225, y: 206, r: 3.5 },
+  { x: 253, y: 225, r: 4.1 },
+  { x: 253, y: 295, r: 4.7 },
+  { x: 225, y: 314, r: 3.5 },
+  { x: 190, y: 330, r: 4.1 },
+  { x: 155, y: 346, r: 4.7 },
+  { x: 127, y: 365, r: 3.5 },
+  { x: 127, y: 435, r: 4.1 },
+  { x: 155, y: 454, r: 4.7 },
+  { x: 190, y: 470, r: 3.5 },
+  { x: 225, y: 486, r: 4.1 },
+  { x: 253, y: 505, r: 4.7 },
+  { x: 253, y: 575, r: 3.5 },
+  { x: 225, y: 594, r: 4.1 },
+  { x: 190, y: 610, r: 4.7 },
+  { x: 155, y: 626, r: 3.5 },
+  { x: 127, y: 645, r: 4.1 },
+  { x: 118, y: 715, r: 4.7 },
+  { x: 133, y: 734, r: 3.5 },
+  { x: 150, y: 750, r: 4.1 },
+  { x: 167, y: 766, r: 4.7 },
+  { x: 182, y: 785, r: 3.5 },
 ];
 
-// Bear paws stamped on the trail
+// Vết chân gấu in dấu trên đường mòn theo hướng di chuyển
 const PAW_PRINTS = [
-  { x: 250, y: 150, rot: 50 },
-  { x: 200, y: 275, rot: -130 },
-  { x: 190, y: 390, rot: 40 },
-  { x: 200, y: 495, rot: -130 },
-  { x: 190, y: 610, rot: 40 },
-  { x: 200, y: 715, rot: -130 },
-  { x: 190, y: 830, rot: 40 },
-  { x: 200, y: 935, rot: -130 },
-  { x: 190, y: 1050, rot: 40 },
-  { x: 200, y: 1155, rot: -130 },
-  { x: 190, y: 1270, rot: 40 },
-  { x: 210, y: 1385, rot: -110 },
+  { x: 155, y: 174, rot: 28 },
+  { x: 225, y: 206, rot: 28 },
+  { x: 225, y: 314, rot: 152 },
+  { x: 155, y: 346, rot: 152 },
+  { x: 155, y: 454, rot: 28 },
+  { x: 225, y: 486, rot: 28 },
+  { x: 225, y: 594, rot: 152 },
+  { x: 155, y: 626, rot: 152 },
+  { x: 133, y: 734, rot: 46 },
+  { x: 167, y: 766, rot: 46 },
 ];
 
 const BEAR_PHRASES = [
@@ -119,8 +114,6 @@ export default function MapScreen() {
     currentLevelIndex,
     completedLevels,
     bearType,
-    setBearType,
-    setPlayerName,
     goToQuestion,
     playerName,
     score,
@@ -156,14 +149,17 @@ export default function MapScreen() {
   });
 
   const smoothTrailPath = generateTrailPath(stations);
-  const totalSvgHeight = Math.max(800, stations.length * 110 + 120);
+  const totalSvgHeight = Math.max(760, stations.length * 140 + 100);
+
+  // Filter cobblestones and paw prints to match actual height
+  const activeCobblestones = COBBLESTONES.filter((c) => c.y < totalSvgHeight - 50);
+  const activePawPrints = PAW_PRINTS.filter((p) => p.y < totalSvgHeight - 50);
 
   const [selectedStation, setSelectedStation] = useState<StationData | null>(null);
   const [speechText, setSpeechText] = useState<string>(BEAR_PHRASES[0]);
   const [bearHopCount, setBearHopCount] = useState<number>(0);
 
   const [showSettingsModal, setShowSettingsModal] = useState<boolean>(false);
-  const [editName, setEditName] = useState<string>(playerName);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const activeStation = stations[currentLevelIndex] || stations[0];
@@ -204,14 +200,6 @@ export default function MapScreen() {
   const handleStationClick = (station: StationData) => {
     playPopSound();
     setSelectedStation(station);
-  };
-
-  const handleSaveProfile = () => {
-    playPopSound();
-    if (editName.trim()) {
-      setPlayerName(editName.trim());
-    }
-    setShowSettingsModal(false);
   };
 
   const handleRestart = () => {
@@ -269,11 +257,10 @@ export default function MapScreen() {
           <button
             onClick={() => {
               playPopSound();
-              setEditName(playerName);
               setShowSettingsModal(true);
             }}
             className="btn-pop w-7 h-7 rounded-xl bg-amber-200 border-2 border-amber-800 flex items-center justify-center text-xs shadow-[0_2px_0_#78350f]"
-            title="Đổi tên / Chơi lại / Âm lượng nhạc"
+            title="Tùy chọn: Chơi lại từ đầu & Âm thanh"
           >
             ⚙️
           </button>
@@ -370,7 +357,7 @@ export default function MapScreen() {
 
           {/* ── 1. RIVER STREAM CROSSING ──────────────────────────── */}
           <path
-            d="M -20,380 C 120,350 200,430 400,390"
+            d="M -20,330 C 120,300 200,380 400,340"
             fill="none"
             stroke="url(#riverGrad)"
             strokeWidth="38"
@@ -378,7 +365,7 @@ export default function MapScreen() {
             opacity="0.85"
           />
           <path
-            d="M -20,380 C 120,350 200,430 400,390"
+            d="M -20,330 C 120,300 200,380 400,340"
             fill="none"
             stroke="#ffffff"
             strokeWidth="3"
@@ -473,36 +460,40 @@ export default function MapScreen() {
             strokeLinejoin="round"
           />
           {/* Cobblestones along path */}
-          {COBBLESTONES.map((cobble, idx) => (
-            <circle
-              key={`cobble-${idx}`}
-              cx={cobble.x}
-              cy={cobble.y}
-              r={cobble.r}
-              fill="#d97706"
-              stroke="#b45309"
-              strokeWidth="1.5"
-              opacity="0.8"
-            />
-          ))}
+          {
+            activeCobblestones.map((cobble, idx) => (
+              <circle
+                key={`cobble-${idx}`}
+                cx={cobble.x}
+                cy={cobble.y}
+                r={cobble.r}
+                fill="#d97706"
+                stroke="#b45309"
+                strokeWidth="1.5"
+                opacity="0.8"
+              />
+            ))
+          }
 
           {/* Stamped Bear Paw Prints */}
-          {PAW_PRINTS.map((paw, idx) => (
-            <g
-              key={`paw-${idx}`}
-              transform={`translate(${paw.x}, ${paw.y}) rotate(${paw.rot}) scale(0.6)`}
-              opacity="0.45"
-            >
-              <ellipse cx="0" cy="4" rx="6" ry="5" fill="#78350f" />
-              <circle cx="-5" cy="-3" r="2.2" fill="#78350f" />
-              <circle cx="-1.5" cy="-6" r="2.2" fill="#78350f" />
-              <circle cx="2.5" cy="-6" r="2.2" fill="#78350f" />
-              <circle cx="5.5" cy="-3" r="2.2" fill="#78350f" />
-            </g>
-          ))}
+          {
+            activePawPrints.map((paw, idx) => (
+              <g
+                key={`paw-${idx}`}
+                transform={`translate(${paw.x}, ${paw.y}) rotate(${paw.rot}) scale(0.6)`}
+                opacity="0.45"
+              >
+                <ellipse cx="0" cy="4" rx="6" ry="5" fill="#78350f" />
+                <circle cx="-5" cy="-3" r="2.2" fill="#78350f" />
+                <circle cx="-1.5" cy="-6" r="2.2" fill="#78350f" />
+                <circle cx="2.5" cy="-6" r="2.2" fill="#78350f" />
+                <circle cx="5.5" cy="-3" r="2.2" fill="#78350f" />
+              </g>
+            ))
+          }
 
           {/* Animated Golden Sun Dash Trail */}
-          <path
+          < path
             d={smoothTrailPath}
             fill="none"
             stroke="#ffffff"
@@ -512,8 +503,8 @@ export default function MapScreen() {
             opacity="0.9"
           />
 
-          {/* Wooden Bridge at River Crossing (near y: 380) */}
-          <g transform="translate(95, 375)">
+          {/* Wooden Bridge at River Crossing (near y: 330) */}
+          <g transform="translate(182, 332) rotate(-16)">
             {/* Wooden Planks */}
             {[-18, -6, 6, 18].map((offset, i) => (
               <rect
@@ -534,11 +525,16 @@ export default function MapScreen() {
           </g>
 
           {/* ── 4. BESPOKE CARTOON LANDMARKS ──────────────────────── */}
-          {/* Landmark 1: Beehive on tree branch */}
-          <g transform="translate(255, 95)" className="tree-sway">
-            <path d="M 0,0 Q 20,-10 40,5" stroke="#78350f" strokeWidth="5" fill="none" strokeLinecap="round" />
-            {/* Honeycomb */}
-            <g transform="translate(30, 8)">
+          {/* Landmark 1: Cây cổ thụ có tổ ong rừng (Gần Trạm 1: x: 110, y: 120 -> đặt bên phải thoáng x: 260, y: 110) */}
+          <g transform="translate(260, 110)" className="tree-sway">
+            {/* Tree Trunk */}
+            <path d="M 0,25 Q 5,0 0,-15" stroke="#78350f" strokeWidth="8" fill="none" strokeLinecap="round" />
+            {/* Tree Foliage */}
+            <circle cx="-10" cy="-22" r="18" fill="#15803d" />
+            <circle cx="10" cy="-24" r="16" fill="#16a34a" />
+            <circle cx="0" cy="-32" r="16" fill="#22c55e" />
+            {/* Honeycomb on branch */}
+            <g transform="translate(18, -12)">
               <ellipse cx="0" cy="0" rx="9" ry="7" fill="#f59e0b" stroke="#78350f" strokeWidth="2" />
               <ellipse cx="0" cy="5" rx="8" ry="6" fill="#fbbf24" stroke="#78350f" strokeWidth="2" />
               <ellipse cx="0" cy="10" rx="6" ry="5" fill="#f59e0b" stroke="#78350f" strokeWidth="2" />
@@ -546,94 +542,89 @@ export default function MapScreen() {
               <circle cx="0" cy="17" r="2.5" fill="#fbbf24" className="honey-drip" />
             </g>
             {/* Little Bee */}
-            <g transform="translate(18, -2)">
+            <g transform="translate(28, -24)">
               <ellipse cx="0" cy="0" rx="4" ry="3" fill="#fde047" stroke="#000" strokeWidth="1" />
               <line x1="-1" y1="-3" x2="-1" y2="3" stroke="#000" strokeWidth="1" />
               <line x1="1" y1="-3" x2="1" y2="3" stroke="#000" strokeWidth="1" />
             </g>
           </g>
 
-          {/* Landmark 2: Tall Mountain Pine Trees */}
-          <g transform="translate(340, 230)" className="tree-sway">
+          {/* Landmark 2: Rừng thông đại ngàn (Gần Trạm 2: x: 270, y: 260 -> đặt bên lề trái x: 38, y: 245) */}
+          <g transform="translate(38, 245)" className="tree-sway">
             <rect x="-3" y="15" width="6" height="15" fill="#78350f" rx="1.5" />
             <polygon points="0,-18 -18,0 -8,0 -22,16 22,16 8,0 18,0" fill="#15803d" stroke="#14532d" strokeWidth="2" />
             <circle cx="0" cy="-6" r="3" fill="#86efac" opacity="0.6" />
+            {/* Secondary smaller pine */}
+            <g transform="translate(22, 10) scale(0.7)">
+              <rect x="-3" y="15" width="6" height="15" fill="#78350f" rx="1.5" />
+              <polygon points="0,-18 -18,0 -8,0 -22,16 22,16 8,0 18,0" fill="#16a34a" stroke="#14532d" strokeWidth="2" />
+            </g>
           </g>
 
-          {/* Landmark 3: Broken Cage / Freedom Butterfly */}
-          <g transform="translate(40, 360)">
+          {/* Landmark 3: Lồng sắt mở toang & bướm tự do (Gần Trạm 3: x: 110, y: 400 -> đặt bên lề phải x: 340, y: 390) */}
+          <g transform="translate(340, 390)">
             {/* Broken cage bars */}
-            <rect x="-8" y="-12" width="16" height="20" fill="none" stroke="#64748b" strokeWidth="2.5" rx="2" />
-            <line x1="-2" y1="-12" x2="-2" y2="8" stroke="#64748b" strokeWidth="2" />
-            <path d="M 2,-12 L 6,-2" stroke="#64748b" strokeWidth="2" />
-            {/* Golden lock broken */}
-            <rect x="-4" y="6" width="8" height="6" fill="#facc15" stroke="#a16207" strokeWidth="1.5" rx="1" />
+            <rect x="-10" y="-14" width="20" height="22" fill="none" stroke="#64748b" strokeWidth="2.5" rx="3" />
+            <line x1="-3" y1="-14" x2="-3" y2="8" stroke="#64748b" strokeWidth="2" />
+            <path d="M 3,-14 L 8,-4" stroke="#64748b" strokeWidth="2" />
+            {/* Broken golden lock */}
+            <rect x="-5" y="8" width="10" height="7" fill="#facc15" stroke="#a16207" strokeWidth="1.5" rx="1" />
+            {/* Freedom Butterfly flying out */}
+            <g transform="translate(-16, -18) scale(0.85)">
+              <ellipse cx="-4" cy="-4" rx="5" ry="3" fill="#38bdf8" transform="rotate(-30, -4, -4)" />
+              <ellipse cx="4" cy="-4" rx="5" ry="3" fill="#38bdf8" transform="rotate(30, 4, -4)" />
+              <circle cx="0" cy="-2" r="2" fill="#0284c7" />
+            </g>
           </g>
 
-          {/* Landmark 4: Nursery Sapling with sunflower */}
-          <g transform="translate(345, 495)">
-            <ellipse cx="0" cy="12" rx="10" ry="4" fill="#78350f" />
-            {/* Sapling stem */}
-            <path d="M 0,12 Q 3,0 0,-10" stroke="#16a34a" strokeWidth="3" fill="none" strokeLinecap="round" />
-            <ellipse cx="-6" cy="-2" rx="5" ry="3" fill="#4ade80" transform="rotate(-30, -6, -2)" />
-            <ellipse cx="6" cy="-5" rx="5" ry="3" fill="#4ade80" transform="rotate(30, 6, -5)" />
-            {/* Little flower */}
-            <circle cx="0" cy="-14" r="5" fill="#fde047" stroke="#eab308" strokeWidth="1.5" />
+          {/* Landmark 4: Vườn thảo dược & hoa cúc giải cứu gấu (Gần Trạm 4: x: 270, y: 540 -> đặt bên lề trái x: 36, y: 525) */}
+          <g transform="translate(36, 525)">
+            <ellipse cx="0" cy="14" rx="14" ry="5" fill="#78350f" opacity="0.7" />
+            {/* Stem & Leaves */}
+            <path d="M 0,14 Q 4,0 0,-12" stroke="#16a34a" strokeWidth="3" fill="none" strokeLinecap="round" />
+            <ellipse cx="-7" cy="-2" rx="6" ry="3.5" fill="#4ade80" transform="rotate(-30, -7, -2)" />
+            <ellipse cx="7" cy="-6" rx="6" ry="3.5" fill="#4ade80" transform="rotate(30, 7, -6)" />
+            {/* Herbal flower */}
+            <circle cx="0" cy="-16" r="6" fill="#fde047" stroke="#eab308" strokeWidth="1.5" />
+            <circle cx="0" cy="-16" r="2.5" fill="#ea580c" />
           </g>
 
-          {/* Landmark 5: Ranger Station Watchtower */}
-          <g transform="translate(40, 615)">
+          {/* Landmark 5: Chòi kiểm lâm bảo vệ rừng (Đặt bên lề phải thoáng x: 340, y: 730) */}
+          <g transform="translate(340, 730)">
             {/* Stilts */}
-            <line x1="-8" y1="12" x2="-4" y2="-4" stroke="#78350f" strokeWidth="2" />
-            <line x1="8" y1="12" x2="4" y2="-4" stroke="#78350f" strokeWidth="2" />
+            <line x1="-8" y1="14" x2="-4" y2="-4" stroke="#78350f" strokeWidth="2.5" />
+            <line x1="8" y1="14" x2="4" y2="-4" stroke="#78350f" strokeWidth="2.5" />
+            {/* Cross bracing */}
+            <line x1="-6" y1="10" x2="6" y2="0" stroke="#78350f" strokeWidth="1.5" opacity="0.6" />
             {/* Cabin */}
-            <rect x="-10" y="-14" width="20" height="12" fill="#d97706" stroke="#78350f" strokeWidth="2" rx="2" />
-            <polygon points="-13,-14 0,-24 13,-14" fill="#dc2626" stroke="#991b1b" strokeWidth="2" />
-            {/* Megaphone */}
-            <circle cx="6" cy="-8" r="2" fill="#facc15" />
+            <rect x="-11" y="-15" width="22" height="13" fill="#d97706" stroke="#78350f" strokeWidth="2" rx="2" />
+            <polygon points="-15,-15 0,-25 15,-15" fill="#dc2626" stroke="#991b1b" strokeWidth="2" />
+            {/* Window */}
+            <rect x="-4" y="-12" width="8" height="6" fill="#fef08a" stroke="#78350f" strokeWidth="1" rx="1" />
           </g>
 
-          {/* Landmark 6: Ancient Red Book Stone Pillar */}
-          <g transform="translate(340, 755)">
-            <rect x="-8" y="-14" width="16" height="24" fill="#94a3b8" stroke="#475569" strokeWidth="2" rx="3" />
-            <rect x="-6" y="-11" width="12" height="18" fill="#e2e8f0" rx="1" />
-            {/* Red Bookmark */}
-            <rect x="-2" y="-13" width="4" height="12" fill="#ef4444" />
-          </g>
-
-          {/* Landmark 7: Protective Shield & Wooden Fence */}
-          <g transform="translate(42, 885)">
-            {/* Wooden palisade fence */}
-            <rect x="-12" y="-6" width="6" height="16" fill="#b45309" stroke="#78350f" strokeWidth="1.5" rx="1" />
-            <rect x="-4" y="-10" width="6" height="20" fill="#b45309" stroke="#78350f" strokeWidth="1.5" rx="1" />
-            <rect x="4" y="-6" width="6" height="16" fill="#b45309" stroke="#78350f" strokeWidth="1.5" rx="1" />
-            {/* Shield */}
-            <path d="M 0,-4 Q 8,-4 8,4 Q 8,12 0,16 Q -8,12 -8,4 Q -8,-4 0,-4 Z" fill="#3b82f6" stroke="#1d4ed8" strokeWidth="1.5" />
-            <circle cx="0" cy="5" r="2.5" fill="#facc15" />
-          </g>
-
-          {/* Landmark 8: Grand Sanctuary Victory Gate (at last station) */}
+          {/* Landmark: Grand Sanctuary Victory Gate (Ngay sau trạm đích đến cuối cùng) */}
           {stations.length > 0 && (
-            <g transform={`translate(${stations[stations.length - 1].x}, ${stations[stations.length - 1].y + 40})`}>
-              {/* Gate Arch */}
-              <path d="M -32,20 L -32,-8 Q 0,-28 32,-8 L 32,20" fill="none" stroke="#78350f" strokeWidth="6" strokeLinecap="round" />
+            <g transform={`translate(${stations[stations.length - 1].x}, ${stations[stations.length - 1].y + 60})`}>
+              {/* Gate Pillars & Arch */}
+              <path d="M -36,22 L -36,-10 Q 0,-32 36,-10 L 36,22" fill="none" stroke="#78350f" strokeWidth="7" strokeLinecap="round" />
               {/* Bunting Garland */}
-              <path d="M -30,-4 Q 0,8 30,-4" fill="none" stroke="#f59e0b" strokeWidth="1.5" />
-              {[-20, -10, 0, 10, 20].map((bx, i) => {
+              <path d="M -32,-6 Q 0,8 32,-6" fill="none" stroke="#f59e0b" strokeWidth="2" />
+              {[-22, -11, 0, 11, 22].map((bx, i) => {
                 const colors = ['#ef4444', '#3b82f6', '#10b981', '#f59e0b', '#ec4899'];
                 return (
                   <polygon
                     key={i}
-                    points={`${bx},0 ${bx + 6},0 ${bx + 3},8`}
+                    points={`${bx},0 ${bx + 6},0 ${bx + 3},9`}
                     fill={colors[i]}
                     className="flag-wave"
                   />
                 );
               })}
               {/* Welcome Signboard */}
-              <rect x="-26" y="-28" width="52" height="14" fill="#fde047" stroke="#b45309" strokeWidth="2" rx="3" />
-              <text x="0" y="-18" fontSize="8" fontWeight="900" fill="#78350f" textAnchor="middle" fontFamily="'Baloo 2', 'Be Vietnam Pro', sans-serif">
-                VIỆT NAM SANCTUARY
+              <rect x="-44" y="-32" width="88" height="16" fill="#fde047" stroke="#b45309" strokeWidth="2.5" rx="4" />
+              <text x="0" y="-21" fontSize="8" fontWeight="900" fill="#78350f" textAnchor="middle" fontFamily="'Baloo 2', 'Be Vietnam Pro', sans-serif">
+                VQG BẠCH MÃ SANCTUARY
               </text>
             </g>
           )}
@@ -919,7 +910,7 @@ export default function MapScreen() {
         </motion.button>
       </footer>
 
-      {/* ── 9. SETTINGS & PROFILE MODAL (Đổi tên & Chơi lại từ đầu) ──── */}
+      {/* ── 9. SETTINGS MODAL (Chỉ gồm: Âm lượng nhạc nền & Chơi lại từ đầu) ──── */}
       <AnimatePresence>
         {showSettingsModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm">
@@ -933,7 +924,7 @@ export default function MapScreen() {
                 <div className="flex items-center gap-2">
                   <span className="text-xl">⚙️</span>
                   <h3 className="font-black text-base uppercase tracking-wide">
-                    Tùy chọn người chơi
+                    Tùy chọn
                   </h3>
                 </div>
                 <button
@@ -942,64 +933,6 @@ export default function MapScreen() {
                 >
                   ✕
                 </button>
-              </div>
-
-              {/* Đổi Tên */}
-              <div>
-                <label className="text-[11px] font-black uppercase text-amber-900 tracking-wider block mb-1.5">
-                  Tên người chơi / Nickname
-                </label>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={editName}
-                    onChange={(e) => setEditName(e.target.value)}
-                    maxLength={20}
-                    placeholder="Nhập tên mới..."
-                    className="flex-1 px-3 py-2 rounded-xl bg-white border-2 border-amber-400 text-amber-950 font-bold text-sm outline-none focus:border-amber-700"
-                  />
-                  <button
-                    onClick={handleSaveProfile}
-                    className="btn-pop px-3.5 py-2 rounded-xl bg-amber-500 text-white font-black text-xs uppercase border-2 border-amber-800 shadow-[0_2px_0_#78350f]"
-                  >
-                    Lưu tên
-                  </button>
-                </div>
-              </div>
-
-              {/* Đổi Nhân Vật */}
-              <div>
-                <label className="text-[11px] font-black uppercase text-amber-900 tracking-wider block mb-1.5">
-                  Đổi loài gấu đồng hành
-                </label>
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    onClick={() => {
-                      playPopSound();
-                      setBearType('sunbear');
-                    }}
-                    className={`py-2 px-2 rounded-xl border-2 font-black text-xs flex items-center justify-center gap-1.5 transition-all ${
-                      bearType === 'sunbear'
-                        ? 'bg-amber-400 border-amber-800 shadow-[0_2px_0_#78350f]'
-                        : 'bg-white/60 border-amber-300 opacity-70'
-                    }`}
-                  >
-                    <span>☀️</span> Gấu Chó
-                  </button>
-                  <button
-                    onClick={() => {
-                      playPopSound();
-                      setBearType('blackbear');
-                    }}
-                    className={`py-2 px-2 rounded-xl border-2 font-black text-xs flex items-center justify-center gap-1.5 transition-all ${
-                      bearType === 'blackbear'
-                        ? 'bg-slate-700 text-white border-slate-900 shadow-[0_2px_0_#0f172a]'
-                        : 'bg-white/60 border-amber-300 opacity-70'
-                    }`}
-                  >
-                    <span>🌙</span> Gấu Ngựa
-                  </button>
-                </div>
               </div>
 
               {/* Âm lượng nhạc nền */}

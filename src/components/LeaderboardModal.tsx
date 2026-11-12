@@ -9,7 +9,7 @@ export default function LeaderboardModal() {
   const { showLeaderboard, closeLeaderboard, sessionId, playerName, bearType, score, levels } =
     useGameStore();
 
-  const totalStations = levels.length || 13;
+  const totalStations = levels.length || 5;
 
   const [loading, setLoading] = useState(false);
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
@@ -36,9 +36,9 @@ export default function LeaderboardModal() {
 
   if (!showLeaderboard) return null;
 
-  // Find player's rank
+  // Find player's rank (Ưu tiên sessionId trước, sau đó tìm theo tên của chính phiên có điểm tương ứng)
   const playerRankIndex = entries.findIndex(
-    (e) => e.sessionId === sessionId || (Boolean(playerName.trim()) && e.playerName.trim() === playerName.trim())
+    (e) => e.sessionId === sessionId || (Boolean(playerName.trim()) && e.playerName.trim() === playerName.trim() && e.score === score)
   );
   const playerRank = playerRankIndex >= 0 ? playerRankIndex + 1 : null;
 
@@ -136,7 +136,7 @@ export default function LeaderboardModal() {
               entries.map((item, idx) => {
                 const rankNumber = idx + 1;
                 const isCurrentPlayer =
-                  item.sessionId === sessionId || (Boolean(playerName) && item.playerName === playerName);
+                  item.sessionId === sessionId || (Boolean(playerName.trim()) && item.playerName.trim() === playerName.trim() && item.score === score);
 
                 let medal = '';
                 let rankBg = 'bg-white/80 border-amber-200';

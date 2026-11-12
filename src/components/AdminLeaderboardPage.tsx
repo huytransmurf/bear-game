@@ -299,7 +299,7 @@ export default function AdminLeaderboardPage({ onBack }: { onBack?: () => void }
                       )}
                     </div>
                     <div className="text-[10px] text-slate-400 flex items-center gap-2">
-                      <span>Trạm: {item.completedLevelsCount}/13</span>
+                      <span>Trạm: {item.completedLevelsCount}</span>
                       <span>•</span>
                       <span>{item.updatedAt ? new Date(item.updatedAt).toLocaleTimeString('vi-VN') : ''}</span>
                     </div>
